@@ -1,0 +1,18 @@
+{
+    "seller_ozon": {
+        "inn_number": {
+            "client_id": "number",
+            "api_key": "key",
+            "url_domain": "domain",
+            "url_command": "url"
+        }
+    },
+    "seller_wb": {
+        "inn_number": {
+            "client_id": "number",
+            "api_key": "key",
+            "url_domain": "domain",
+            "url_command": "url"
+        }
+    }
+}
