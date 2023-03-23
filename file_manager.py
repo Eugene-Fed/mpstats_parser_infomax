@@ -1,6 +1,5 @@
 # -*- coding: UTF-8 -*-
 
-import requests
 import json
 import sys
 from pathlib import Path
@@ -50,5 +49,5 @@ if __name__ == '__main__':
     settings = load_json(file=settings_file)
     api_keys_path = Path(settings['api-keys_dir']) / Path(settings['api-keys_file'])
     api_keys = load_json(file=api_keys_path)
-    # print(settings)
+    print(settings)
 
