@@ -39,16 +39,19 @@ def open_window(url: str) -> str:
     try:
         # driver.maximize_window()
         driver.get(url)
-        # time.sleep(5)
         return driver.current_window_handle         # возвращаем ID текущего открытого окна
     except Exception as ex:
         print(ex)
 
 
 def close_window(handler):
-    driver.switch_to.window(handler)
-    driver.close()
-    driver.quit()
+    try:
+        driver.switch_to.window(handler)
+        driver.close()
+        driver.quit()
+    except Exception as ex:
+        print("WINDOW NOT AVAILABLE")
+        print(ex)
 
 
 if __name__ == '__main__':

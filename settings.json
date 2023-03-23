@@ -7,5 +7,9 @@
             "login": "",
             "pass": ""
         }
+    },
+    "mpstats_url": {
+        "login": "https://mpstats.io/login",
+        "keywords": "https://mpstats.io/wb/tools/check-rates/result"
     }
 }
