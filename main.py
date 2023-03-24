@@ -4,7 +4,7 @@ import requests
 import json
 import sys
 import file_manager as fm           # Управление файлами настроек, паролей и т.п.
-import browser_manager as bm        # Управление запуском браузера
+import selenium_browser_manager as bm        # Управление запуском браузера
 from pathlib import Path
 import time
 
@@ -17,7 +17,11 @@ if __name__ == '__main__':
     bm.DRIVER_PATH = settings['webdriver_dir']
     print(settings)
     window_id = bm.open_window(settings['mpstats_url']['login'])
-    time.sleep(10)
+    bm.input_text(window_id, 'id', 'email', mpstat_acc['login'], sleep=2)
+    bm.input_text(window_id, 'name', 'password', mpstat_acc['pass'], sleep=1)
+    #bm.click_element(window_id, '')
+
+    time.sleep(60)
     bm.close_window(window_id)
 
 
