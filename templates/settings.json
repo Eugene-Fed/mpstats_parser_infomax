@@ -1,4 +1,11 @@
 {
+    "webdriver_dir": "drivers/chromedriver.exe",
     "api-keys_dir": "api-keys",
-    "api-keys_file": "api-keys.json"
+    "api-keys_file": "api-keys.json",
+    "accounts": {
+        "ms_stats": {
+            "login": "",
+            "pass": ""
+        }
+    }
 }

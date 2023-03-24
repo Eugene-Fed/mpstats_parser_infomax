@@ -14,5 +14,13 @@
             "url_domain": "domain",
             "url_command": "url"
         }
+    },
+    "mp_stats": {
+        "accounts": [
+            {
+                "login": "",
+                "pass": ""
+            }
+        ]
     }
 }
