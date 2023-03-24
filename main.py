@@ -10,7 +10,8 @@ import time
 
 
 if __name__ == '__main__':
-    settings = fm.load_json()       # загружаем файл настроек (создаем, если он отсутствовал)
+    # TODO - Rewtrite to use `DOM Ready` factor instead of sleeping
+    settings = fm.load_json()       # Loading settings file
     api_keys_file = Path(settings['api-keys_dir']) / Path(settings['api-keys_file'])
     api_keys = fm.load_json(file=api_keys_file)
     mpstat_acc = api_keys['mp_stats']['accounts'][0]        # Сюда мы получаем логин/пароль МП Статс
@@ -18,10 +19,10 @@ if __name__ == '__main__':
     print(settings)
     window_id = bm.open_window(settings['mpstats_url']['login'])
     bm.input_text(window_id, 'id', 'email', mpstat_acc['login'], sleep=2)
-    bm.input_text(window_id, 'name', 'password', mpstat_acc['pass'], sleep=1)
-    #bm.click_element(window_id, '')
+    bm.input_text(window_id, 'name', 'password', mpstat_acc['pass'])
+    bm.click_key(window_id, 'name', 'password')     # Just press ENTER instead of searching for a button
 
-    time.sleep(60)
+    time.sleep(6)
     bm.close_window(window_id)
 
 

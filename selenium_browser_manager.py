@@ -80,22 +80,22 @@ def find_elements(element_type: str, name: str):
     return elements_input
 
 
-def input_text(handler: str, element_type: str, name: str, data: str, sleep: int):
+def input_text(handler: str, element: str, name: str, data: str, sleep=1):
     # TODO Rewrite to search elements by several tags with recursion
-    '''
+    """
     Manipulating with text input fields
     :param handler: Window ID for manipulating
-    :param element_type: Type  of searching element
+    :param element: Type  of searching element
     :param name: Name of searching element
     :param data: Data to input
     :param sleep: Sleeping time in seconds
     :return: None
-    '''
+    """
     time.sleep(sleep)
     try:
         driver.switch_to.window(handler)
 
-        element_input = find_elements(element_type, name)    # temporarily pick up only the first element
+        element_input = find_elements(element, name)    # temporarily pick up only the first element
         element_input.clear()
         element_input.send_keys(data)
 
@@ -104,21 +104,42 @@ def input_text(handler: str, element_type: str, name: str, data: str, sleep: int
         print(ex)
 
 
-def click_element(handler: str, element: str, id: str, data: str, sleep: int):
-    '''
+def click_element(handler: str, element: str, name: str, sleep=1):
+    """
     Manipulating with text input fields
     :param handler: Window ID for manipulating
     :param element: Type of finding element
-    :param id: Name of finding element
-    :param data: Data to input
+    :param name: Name of finding element
     :param sleep: Sleeping time in seconds
     :return: None
-    '''
+    """
     time.sleep(sleep)
     try:
         driver.switch_to.window(handler)
-        element_click = find_elements(element, id)
+        element_click = find_elements(element, name)
         element_click.click()
+
+    except Exception as ex:
+        print("Element doesn't found")
+        print(ex)
+
+
+def click_key(handler: str, element: str, name: str, key='enter', sleep=1):
+    """
+    Manipulating with text input fields
+    :param handler: Window ID for manipulating
+    :param element: Type of finding element
+    :param name: Name of finding element
+    :param key: Name of button to press
+    :param sleep: Sleeping time in seconds
+    :return: None
+    """
+    time.sleep(sleep)
+    try:
+        driver.switch_to.window(handler)
+        element_click = find_elements(element, name)
+        if key == 'enter':
+            element_click.send_keys(Keys.ENTER)
 
     except Exception as ex:
         print("Element doesn't found")
