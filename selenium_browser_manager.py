@@ -30,14 +30,17 @@ s = Service(executable_path=DRIVER_PATH)
 driver = webdriver.Chrome(service=s, options=options)
 
 
-def open_window(url: str) -> str:
+def open_window(url: str, sleep=0) -> str:
     '''
     Open browser window and return it'd ID
-    :param url: gets url to open window
-    :return: window id to manipulate
+    :param url: Gets url to open window
+    :param sleep: Time to sleep before open new window in seconds
+    :return: Window id to manipulate
     '''
     try:
         # driver.maximize_window()
+        if sleep:
+            time.sleep(sleep)
         driver.get(url)
         return driver.current_window_handle         # возвращаем ID текущего открытого окна
     except Exception as ex:
@@ -147,7 +150,7 @@ def click_key(handler: str, element: str, name: str, key='enter', sleep=1):
 
 
 if __name__ == '__main__':
-    print(help(driver.find_elements))
+    print(help(driver.get))
 
 
 

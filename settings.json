@@ -2,14 +2,24 @@
     "webdriver_dir": "drivers/chromedriver.exe",
     "api-keys_dir": "api-keys",
     "api-keys_file": "api-keys.json",
-    "accounts": {
-        "ms_stats": {
-            "login": "",
-            "pass": ""
-        }
-    },
     "mpstats_url": {
         "login": "https://mpstats.io/login",
-        "keywords": "https://mpstats.io/wb/tools/check-rates/result"
+        "keywords": "https://mpstats.io/wb/tools/check-rates/result",
+        "login_data": {
+            "name_key": "id",
+            "name_value": "email",
+            "pass_key": "name",
+            "pass_value": "password"
+        }
+    },
+    "bablo_url": {
+        "login": "https://www.knopka-bablo.online/login",
+        "keywords": "https://www.knopka-bablo.online/current-bets",
+        "login_data": {
+            "name_key": "name",
+            "name_value": "phoneNumber",
+            "pass_key": "name",
+            "pass_value": "password"
+        }
     }
 }
