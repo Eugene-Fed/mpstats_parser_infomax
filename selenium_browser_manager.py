@@ -58,27 +58,28 @@ def close_window(handler: str):
 
 
 def find_elements(element_type: str, name: str):
-    '''
+    """
     :param element_type: Type of element for search
     :param name: Element name value
     :return: Found element
-    '''
+    """
     if element_type == 'id':
-        elements_input = driver.find_element(By.ID, name)
+        elements_input = driver.find_elements(By.ID, name)
+        temp = elements_input[0]
     elif element_type == 'name':
-        elements_input = driver.find_element(By.NAME, name)
+        elements_input = driver.find_elements(By.NAME, name)
     elif element_type == 'class':
-        elements_input = driver.find_element(By.CLASS_NAME, name)
+        elements_input = driver.find_elements(By.CLASS_NAME, name)
     elif element_type == 'css':
-        elements_input = driver.find_element(By.CSS_SELECTOR, name)
+        elements_input = driver.find_elements(By.CSS_SELECTOR, name)
     elif element_type == 'tag':
-        elements_input = driver.find_element(By.TAG_NAME, name)
+        elements_input = driver.find_elements(By.TAG_NAME, name)
     elif element_type == 'link':
-        elements_input = driver.find_element(By.LINK_TEXT, name)
+        elements_input = driver.find_elements(By.LINK_TEXT, name)
     elif element_type == 'xpath':
-        elements_input = driver.find_element(By.XPATH, name)
+        elements_input = driver.find_elements(By.XPATH, name)
     elif element_type == 'partial':
-        elements_input = driver.find_element(By.PARTIAL_LINK_TEXT, name)
+        elements_input = driver.find_elements(By.PARTIAL_LINK_TEXT, name)
 
     return elements_input
 
@@ -98,7 +99,7 @@ def input_text(handler: str, element: str, name: str, data: str, sleep=1):
     try:
         driver.switch_to.window(handler)
 
-        element_input = find_elements(element, name)    # temporarily pick up only the first element
+        element_input = find_elements(element, name)[0]    # temporarily pick up only the first element
         element_input.clear()
         element_input.send_keys(data)
 
@@ -119,7 +120,7 @@ def click_element(handler: str, element: str, name: str, sleep=1):
     time.sleep(sleep)
     try:
         driver.switch_to.window(handler)
-        element_click = find_elements(element, name)
+        element_click = find_elements(element, name)[0]
         element_click.click()
 
     except Exception as ex:
@@ -140,7 +141,7 @@ def click_key(handler: str, element: str, name: str, key='enter', sleep=1):
     time.sleep(sleep)
     try:
         driver.switch_to.window(handler)
-        element_click = find_elements(element, name)
+        element_click = find_elements(element, name)[0]
         if key == 'enter':
             element_click.send_keys(Keys.ENTER)
 
@@ -150,7 +151,7 @@ def click_key(handler: str, element: str, name: str, key='enter', sleep=1):
 
 
 if __name__ == '__main__':
-    print(help(driver.get))
+    print(help(driver.find_elements))
 
 
 
