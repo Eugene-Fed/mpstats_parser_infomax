@@ -6,13 +6,16 @@ import csv
 import sys
 import file_manager as fm  # Управление файлами настроек, паролей и т.п.
 import selenium_browser_manager as bm  # Управление запуском браузера
+from selenium.webdriver.common.by import By
 from pathlib import Path
 import time
+import re
 
 TEMP_KEYWORDS_PATH = r"D:\Downloads\requests.csv"  # будет заменено на поиск реального расположения папки
-# TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"
-KEYWORD_COUNT_LIMIT = 5
-# https://ru.stackoverflow.com/questions/1236375/%D0%9A%D0%B0%D0%BA-%D0%BF%D0%BE%D0%BB%D1%83%D1%87%D0%B8%D1%82%D1%8C-%D0%BF%D1%83%D1%82%D0%B8-%D0%BA-%D1%81%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D0%BD%D1%8B%D0%BC-%D0%BF%D0%B0%D0%BF%D0%BA%D0%B0%D0%BC-%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8F-%D0%A0%D0%B0%D0%B1%D0%BE%D1%87%D0%B8%D0%B9-%D1%81%D1%82%D0%BE%D0%BB-%D0%97%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D0%B8-%D0%B8-%D1%82
+# TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
+KEYWORD_COUNT_LIMIT = 3
+SEARCHING_INDEXES = (1, 3, 5)                   # Задаем позиции по которым будем собирать статистику (начиная с 1)
+#
 
 
 def set_text(window_id: str, field_tag_name: str, field_tag_value: str, text: str, sleep=1):
@@ -45,10 +48,33 @@ def log_in(window_id: str, account: dict, login_data: dict):
     press_key(window_id, login_data['pass_key'], login_data['pass_value'])   # Press ENTER for send login form
 
 
+def parse_stat_table(field_tag_name, field_tag_value, sleep=3, positions=SEARCHING_INDEXES) -> list:
+    """
+    Gets bids for required positions
+    :param field_tag_name: element_type for searching statistics table
+    :param field_tag_value: element_value for searching statistics table
+    :param sleep: waiting for page load
+    :param positions: the set of indexes for searching bids value
+    :return: list of tuples with position and bid
+    """
+    time.sleep(sleep)
+    bids = []
+    rows = bm.find_elements(element_type=field_tag_name, name=field_tag_value)      # gets all rows grom stat table
+    for p in positions:                 # searching only required positions
+        cells = rows[p-1].find_elements(By.TAG_NAME, 'div')         # lists start from `0` and that's why `p-1`
+        nums = re.findall(r'\d+', cells[7].text)                    # from value we gets only a number
+        # nums = re.findall(r'\d*\.\d+|\d+', s)                     # for float
+        cpm = [int(n) for n in nums][0]                             # we have only one number
+        print(f'Позиция {p}, Ставка: {cpm}')
+        bids.append((p, cpm))
+    return bids
+
+
 def get_key_stat(window_id: str, field_tag_name, field_tag_value, keyword, sleep=3):
     set_text(window_id, field_tag_name=field_tag_name, field_tag_value=field_tag_value, text=keyword, sleep=sleep)
     press_key(window_id, field_tag_name=field_tag_name, field_tag_value=field_tag_value, sleep=sleep)
-    return keyword
+    print(keyword)
+    return parse_stat_table('class', 'MuiDataGrid-row', sleep)
 
 
 if __name__ == '__main__':
@@ -60,15 +86,14 @@ if __name__ == '__main__':
     bm.DRIVER_PATH = settings['webdriver_dir']
 
     stat_account = settings['bablo_url']
-    window_id = bm.open_window(stat_account['login'])  # open window with MP Stats
-    account = api_keys['bablo_btn']['accounts'][0]  # login data for MP Stats
+    window_id = bm.open_window(stat_account['login'])  # open window with `bablo button`
+    account = api_keys['bablo_btn']['accounts'][0]  # login data for `bablo button`
     # log in at Btn Bablo
     log_in(window_id=window_id, account=account, login_data=stat_account['login_data'])
 
     # open keyword stat page
     bm.open_window(stat_account['keywords'], sleep=5)
     with open(TEMP_KEYWORDS_PATH, 'r', newline='', encoding='utf-8') as f:
-        # https://pythonworld.ru/moduli/modul-csv.html
         i = 0
         reader = csv.reader(f, delimiter=',')
         # print(help(reader))
@@ -79,6 +104,6 @@ if __name__ == '__main__':
                 break
             i += 1
 
-    time.sleep(5)
+    time.sleep(1)
     bm.close_window(window_id)
 
