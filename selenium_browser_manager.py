@@ -63,6 +63,7 @@ def find_elements(element_type: str, name: str):
     :param name: Element name value
     :return: Found element
     """
+    # TODO Waiting DOM ready before try to search any element
     if element_type == 'id':
         elements_input = driver.find_elements(By.ID, name)
         temp = elements_input[0]

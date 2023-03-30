@@ -10,10 +10,11 @@ from selenium.webdriver.common.by import By
 from pathlib import Path
 import time
 import re
+from tqdm import tqdm
 
 TEMP_KEYWORDS_PATH = r"D:\Downloads\requests.csv"  # будет заменено на поиск реального расположения папки
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
-KEYWORD_COUNT_LIMIT = 10
+KEYWORD_COUNT_LIMIT = 100
 REQUIRED_PLACE_INDEXES = (1, 3, 5)                   # Задаем позиции по которым будем собирать статистику (начиная с 1)
 
 
@@ -89,12 +90,11 @@ if __name__ == '__main__':
         # print(help(reader))
 
         with open('stat.txt', 'a') as f:  # log file
-            # t = time.localtime()
-            # current_time = time.strftime("%H:%M:%S", time.localtime())
             f.write(f'\n{time.strftime("%H:%M:%S", time.localtime())}\n#########################')
 
         for raw in reader:
             if i < KEYWORD_COUNT_LIMIT:
+                print(f'{i} / {KEYWORD_COUNT_LIMIT}')
                 stat = get_key_stat(window_id, 'name', 'value', raw[0], sleep=6)
                 with open('stat.txt', 'a', encoding='utf-8') as f:
                     keyword, frequency = raw[0], f'{int(raw[1]):,}'.replace(',', ' ')
