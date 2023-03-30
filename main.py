@@ -5,7 +5,7 @@ import json
 import csv
 import sys
 import file_manager as fm  # Управление файлами настроек, паролей и т.п.
-import selenium_browser_manager as bm  # Управление запуском браузера
+import selenium_browser_manager as bm  # Управление браузером
 from selenium.webdriver.common.by import By
 from pathlib import Path
 import time
@@ -15,26 +15,6 @@ TEMP_KEYWORDS_PATH = r"D:\Downloads\requests.csv"  # будет заменено
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
 KEYWORD_COUNT_LIMIT = 3
 REQUIRED_PLACE_INDEXES = (1, 3, 5)                   # Задаем позиции по которым будем собирать статистику (начиная с 1)
-#
-
-
-def set_text(window_id: str, field_tag_name: str, field_tag_value: str, text: str, sleep=1):
-    """
-    TODO - функция не имеет смысла. Переписать скрипт на использование вызова `bm.set_text()`
-    Interface to use Parser functions
-    :param window_id:
-    :param field_tag_name: Type of tag to search
-    :param field_tag_value: Value for tag to search
-    :param text: Text to set in field
-    :param sleep:
-    :return: None
-    """
-    bm.set_text(handler=window_id, element=field_tag_name, name=field_tag_value, data=text, sleep=sleep)
-
-
-def press_key(window_id: str, field_tag_name: str, field_tag_value: str, key='enter', sleep=1):
-    # TODO Функция бесполезна. Использовать вызов ниже напрямую в скрипте
-    bm.click_key(handler=window_id, element=field_tag_name, name=field_tag_value, key=key, sleep=sleep)
 
 
 def log_in(window_id: str, account: dict, login_data: dict):
@@ -45,9 +25,9 @@ def log_in(window_id: str, account: dict, login_data: dict):
     :param login_data: Settings for searching text fields
     :return: None
     """
-    set_text(window_id, login_data['name_key'], login_data['name_value'], account['login'], sleep=2)   # Input name
-    set_text(window_id, login_data['pass_key'], login_data['pass_value'], account['pass'])         # Input password
-    press_key(window_id, login_data['pass_key'], login_data['pass_value'])   # Press ENTER for send login form
+    bm.set_text(window_id, login_data['name_key'], login_data['name_value'], account['login'], sleep=2)   # Set name
+    bm.set_text(window_id, login_data['pass_key'], login_data['pass_value'], account['pass'], sleep=1)    # Set password
+    bm.click_key(window_id, login_data['pass_key'], login_data['pass_value'], key='enter', sleep=1)       # Press ENTER
 
 
 def parse_stat_table(field_tag_name: str, field_tag_value: str, sleep=3, positions=REQUIRED_PLACE_INDEXES) -> list:
@@ -67,14 +47,15 @@ def parse_stat_table(field_tag_name: str, field_tag_value: str, sleep=3, positio
         nums = re.findall(r'\d+', cells[7].text)                    # we get only a number from value
         # nums = re.findall(r'\d*\.\d+|\d+', s)                     # for float
         cpm = [int(n) for n in nums][0]                             # we have only one number
-        print(f'Позиция {p}, Ставка: {cpm}')
+        # print(f'Place Index: {p}, Bid: {cpm}')
         bids.append((p, cpm))
     return bids
 
 
 def get_key_stat(window_id: str, field_tag_name, field_tag_value, keyword, sleep=3):
-    set_text(window_id, field_tag_name=field_tag_name, field_tag_value=field_tag_value, text=keyword, sleep=sleep)
-    press_key(window_id, field_tag_name=field_tag_name, field_tag_value=field_tag_value, sleep=sleep)
+    bm.set_text(window_id, field_tag_name, field_tag_value, keyword, sleep=sleep)       # input key at text field
+    bm.click_key(window_id, field_tag_name, field_tag_value, key='enter', sleep=1)      # press ENTER on keyboard
+    print(f'Keyword: "{keyword}"')
     bids = parse_stat_table('class', 'MuiDataGrid-row', sleep)              # get Bids for `REQUIRED_PLACE_INDEXES`
     categories = bm.find_elements(element_type='class', name='sc-frJOEA')[0].text.split('\n')   # get `Prior categories`
     return {'bids': bids, 'categories': categories}
@@ -91,8 +72,8 @@ if __name__ == '__main__':
     stat_account = settings['bablo_url']
     window_id = bm.open_window(stat_account['login'])  # open window with `bablo button`
     account = api_keys['bablo_btn']['accounts'][0]  # login data for `bablo button`
-    # log in at Btn Bablo
-    log_in(window_id=window_id, account=account, login_data=stat_account['login_data'])
+
+    log_in(window_id=window_id, account=account, login_data=stat_account['login_data'])       # log in at `Bablo Button`
 
     # open keyword stat page
     bm.open_window(stat_account['keywords'], sleep=5)
