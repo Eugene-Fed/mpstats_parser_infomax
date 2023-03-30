@@ -84,7 +84,7 @@ def find_elements(element_type: str, name: str):
     return elements_input
 
 
-def input_text(handler: str, element: str, name: str, data: str, sleep=1):
+def set_text(handler: str, element: str, name: str, data: str, sleep=1):
     # TODO Rewrite to search elements by several tags with recursion
     """
     Manipulating with text input fields
