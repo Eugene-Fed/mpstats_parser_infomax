@@ -15,10 +15,11 @@ from tqdm import tqdm
 TEMP_KEYWORDS_PATH = r"D:\Downloads\requests.csv"  # будет заменено на поиск реального расположения папки
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
 KEYWORD_COUNT_LIMIT = 100
+KEYWORD_STATISTICS_WAIT = 3                          # Время в секундах на ожидание загрузки страницы
 REQUIRED_PLACE_INDEXES = (1, 3, 5)                   # Задаем позиции по которым будем собирать статистику (начиная с 1)
 
 
-def log_in(window_id: str, account: dict, login_data: dict):
+def log_in(window_id: str, account: dict, login_data: dict, sleep=0):
     """
     Function to Log in
     :param window_id: Window object from Selenium
@@ -26,9 +27,10 @@ def log_in(window_id: str, account: dict, login_data: dict):
     :param login_data: Settings for searching text fields
     :return: None
     """
-    bm.set_text(window_id, login_data['name_key'], login_data['name_value'], account['login'], sleep=2)   # Set name
-    bm.set_text(window_id, login_data['pass_key'], login_data['pass_value'], account['pass'], sleep=1)    # Set password
-    bm.click_key(window_id, login_data['pass_key'], login_data['pass_value'], key='enter', sleep=1)       # Press ENTER
+    bm.set_text(window_id, login_data['name_key'], login_data['name_value'], account['login'], sleep=sleep)   # Set name
+    bm.set_text(window_id, login_data['pass_key'], login_data['pass_value'], account['pass'], sleep=sleep)    # Set pass
+    bm.click_key(window_id, login_data['pass_key'], login_data['pass_value'], key='enter', sleep=sleep)
+    # bm.click_element(window_id, 'class', 'sc-ipEyDJ', sleep=2)    # Press ENTER
 
 
 def parse_stat_table(field_tag_name: str, field_tag_value: str, sleep=0, positions=REQUIRED_PLACE_INDEXES) -> list:
@@ -53,9 +55,21 @@ def parse_stat_table(field_tag_name: str, field_tag_value: str, sleep=0, positio
     return bids
 
 
-def get_key_stat(window_id: str, field_tag_name, field_tag_value, keyword, sleep=3):
+def get_keyword_stat(window_id: str, field_tag_name, field_tag_value, keyword, sleep=0):
+    """
+    Parse table with keywords statistic.
+    We don't need to wait for the page to load as the webdriver settings have a default time for element search.
+    This parameter is set in the module and is equal to 15 seconds.
+    :param window_id:
+    :param field_tag_name:
+    :param field_tag_value:
+    :param keyword: Searching keyword
+    :param sleep: The waiting time for human-like interaction with an interface
+    :return:
+    """
+    time.sleep(sleep)
     bm.set_text(window_id, field_tag_name, field_tag_value, keyword, sleep=sleep)       # input key at text field
-    bm.click_key(window_id, field_tag_name, field_tag_value, key='enter', sleep=1)      # press ENTER on keyboard
+    bm.click_key(window_id, field_tag_name, field_tag_value, key='enter')      # press ENTER on keyboard
     print(f'Keyword: "{keyword}"')
 
     categories = []
@@ -69,40 +83,44 @@ def get_key_stat(window_id: str, field_tag_name, field_tag_value, keyword, sleep
 
 
 if __name__ == '__main__':
-    # TODO - Rewrite to use `DOM Ready` factor instead of sleeping
+    # TODO - Rewrite to use `DOM Ready` factor instead of sleeping. FIX - it doesn't work!!! Use time.time.sleep()
+    # Load files with settings
     settings = fm.load_json()  # Loading settings file
     api_keys_file = Path(settings['api-keys_dir']) / Path(settings['api-keys_file'])
     api_keys = fm.load_json(file=api_keys_file)
 
+    # Load settings to variables
     bm.DRIVER_PATH = settings['webdriver_dir']
-
     stat_account = settings['bablo_url']
-    window_id = bm.open_window(stat_account['login'])  # open window with `bablo button`
-    account = api_keys['bablo_btn']['accounts'][0]  # login data for `bablo button`
+    account = api_keys['bablo_btn']['accounts'][0]          # login data for `bablo button`
 
+    # Start to use browser
+    window_id = bm.open_window(stat_account['login'])       # open window with `bablo button`
     log_in(window_id=window_id, account=account, login_data=stat_account['login_data'])       # log in at `Bablo Button`
 
-    # open keyword stat page
-    bm.open_window(stat_account['keywords'], sleep=5)
+    # Open keyword stat page
+    bm.open_window(stat_account['keywords'], sleep=1)
     with open(TEMP_KEYWORDS_PATH, 'r', newline='', encoding='utf-8') as f:
         i = 0
         reader = csv.reader(f, delimiter=',')
         # print(help(reader))
 
-        with open('stat.txt', 'a') as f:  # log file
-            f.write(f'\n{time.strftime("%H:%M:%S", time.localtime())}\n#########################')
+        with open('stat.txt', 'a', encoding='utf-8') as f:  # log file
+            f.write(f'\nSTART at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
 
-        for raw in reader:
-            if i < KEYWORD_COUNT_LIMIT:
-                print(f'{i} / {KEYWORD_COUNT_LIMIT}')
-                stat = get_key_stat(window_id, 'name', 'value', raw[0], sleep=6)
-                with open('stat.txt', 'a', encoding='utf-8') as f:
+            for raw in reader:
+                if i < KEYWORD_COUNT_LIMIT:
+                    print(f'{i+1} / {KEYWORD_COUNT_LIMIT}')
+                    stat = get_keyword_stat(window_id, 'name', 'value', raw[0], sleep=KEYWORD_STATISTICS_WAIT)
+                    # with open('stat.txt', 'a', encoding='utf-8') as f:
                     keyword, frequency = raw[0], f'{int(raw[1]):,}'.replace(',', ' ')
                     f.write(f'\n"{keyword}" - {frequency}\n{stat}')
-                print(stat)
-            else:
-                break
-            i += 1
+                    print(stat)
+                else:
+                    break
+                i += 1
+
+            f.write(f'\nEND at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
 
     time.sleep(1)
     bm.close_window(window_id)

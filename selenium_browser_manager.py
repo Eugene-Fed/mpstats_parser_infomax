@@ -12,6 +12,8 @@ USER_DATA_DIR = r'Default'
 CHROME_PROFILE_NAME = r'Default'
 CHROME_PROFILE_PATH = r'C:\Users\eugen\AppData\Local\Google\Chrome\User Data'           # main
 WB_URL = r'https://seller.wildberries.ru/'
+TIMEOUT = 15                          # Time to waiting of page load. But doesn't work
+SLEEP = 0
 
 
 # Настройте параметры профиля для сохранения данных в нем
@@ -28,19 +30,21 @@ options.add_argument("--disable-extensions")
 
 s = Service(executable_path=DRIVER_PATH)
 driver = webdriver.Chrome(service=s, options=options)
+# driver.timeouts.implicit_wait = TIMEOUT
+# driver.implicitly_wait(TIMEOUT)
+# driver.set_page_load_timeout(TIMEOUT)
 
 
-def open_window(url: str, sleep=0) -> str:
-    '''
+def open_window(url: str, sleep=SLEEP) -> str:
+    """
     Open browser window and return it'd ID
     :param url: Gets url to open window
     :param sleep: Time to sleep before open new window in seconds
     :return: Window id to manipulate
-    '''
+    """
     try:
         # driver.maximize_window()
-        if sleep:
-            time.sleep(sleep)
+        time.sleep(sleep)
         driver.get(url)
         return driver.current_window_handle         # возвращаем ID текущего открытого окна
     except Exception as ex:
@@ -66,7 +70,6 @@ def find_elements(element_type: str, name: str):
     # TODO Waiting DOM ready before try to search any element
     if element_type == 'id':
         elements_input = driver.find_elements(By.ID, name)
-        temp = elements_input[0]
     elif element_type == 'name':
         elements_input = driver.find_elements(By.NAME, name)
     elif element_type == 'class':
@@ -85,7 +88,7 @@ def find_elements(element_type: str, name: str):
     return elements_input
 
 
-def set_text(handler: str, element: str, name: str, data: str, sleep=1):
+def set_text(handler: str, element: str, name: str, data: str, sleep=SLEEP):
     # TODO Rewrite to search elements by several tags with recursion
     """
     Manipulating with text input fields
@@ -99,7 +102,6 @@ def set_text(handler: str, element: str, name: str, data: str, sleep=1):
     time.sleep(sleep)
     try:
         driver.switch_to.window(handler)
-
         element_input = find_elements(element, name)[0]    # temporarily pick up only the first element
         element_input.clear()
         element_input.send_keys(data)
@@ -109,7 +111,7 @@ def set_text(handler: str, element: str, name: str, data: str, sleep=1):
         print(ex)
 
 
-def click_element(handler: str, element: str, name: str, sleep=1):
+def click_element(handler: str, element: str, name: str, sleep=SLEEP):
     """
     Manipulating with text input fields
     :param handler: Window ID for manipulating
@@ -129,7 +131,7 @@ def click_element(handler: str, element: str, name: str, sleep=1):
         print(ex)
 
 
-def click_key(handler: str, element: str, name: str, key='enter', sleep=1):
+def click_key(handler: str, element: str, name: str, key='enter', sleep=SLEEP):
     """
     Manipulating with text input fields
     :param handler: Window ID for manipulating
@@ -145,6 +147,8 @@ def click_key(handler: str, element: str, name: str, key='enter', sleep=1):
         element_click = find_elements(element, name)[0]
         if key == 'enter':
             element_click.send_keys(Keys.ENTER)
+        else:
+            pass        # TODO to write
 
     except Exception as ex:
         print("Element doesn't found")
