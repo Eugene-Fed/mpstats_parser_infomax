@@ -14,9 +14,9 @@ from tqdm import tqdm
 
 TEMP_KEYWORDS_PATH = r"D:\Downloads\requests.csv"  # будет заменено на поиск реального расположения папки
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
-KEYWORD_COUNT_LIMIT = 5
-KEYWORD_STATISTICS_WAIT = 3                          # Время в секундах на ожидание загрузки страницы
-REQUIRED_PLACE_INDEXES = (1, 2,  3, 4, 5)            # Задаем позиции по которым будем собирать статистику (начиная с 1)
+KEYWORD_COUNT_LIMIT = 500
+KEYWORD_STATISTICS_WAIT = 5                          # Время в секундах на ожидание загрузки страницы
+REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Задаем позиции по которым будем собирать статистику (начиная с 1)
 HEADERS = ['Запрос', 'Частотность в мес.', 'Частотность в нед.', 'Изменение мес/мес, %', 'Изменение нед/нед, %',
            'Приоритетная категория', '1 место', '2 место', '3 место', '4 место', '5 место',
            'Объем продаж категории, руб']
@@ -105,39 +105,39 @@ if __name__ == '__main__':
     bm.open_window(stat_account['keywords'], sleep=1)
     with open(TEMP_KEYWORDS_PATH, 'r', newline='', encoding='utf-8') as f:
         i = 0
-        reader = csv.reader(f, delimiter=',')       # open wildberries data file
+        wb_stat_reader = csv.reader(f, delimiter=',')       # open wildberries data file
 
-        # with open('stat.txt', 'a', encoding='utf-8') as log:  # log file
-        #    log.write(f'\nSTART at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
-        with open('stat.csv', 'w', newline='', encoding='utf-8') as stat:  # log file
-            writer = csv.writer(stat, dialect='excel')
-            writer.writerow(HEADERS)
+        with open('log.txt', 'a', encoding='utf-8', buffering=1) as log:  # log file
+            log.write(f'\nSTART at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
 
-            for raw in reader:
-                if i < KEYWORD_COUNT_LIMIT:
-                    print(f'{i+1} / {KEYWORD_COUNT_LIMIT}')
-                    stat = get_keyword_stat(window_id, 'name', 'value', raw[0], sleep=KEYWORD_STATISTICS_WAIT)
-                    # with open('stat.txt', 'a', encoding='utf-8') as log:
-                    keyword, frequency = raw[0], f'{int(raw[1]):,}'.replace(',', ' ')
-                    # log.write(f'\n"{keyword}" - {frequency}\n{stat}')
-                    if stat['categories']:
-                        writer.writerow([keyword, frequency, '', '', '',
-                                         stat['categories'][0],
-                                         stat['bids'][0][1],
-                                         stat['bids'][1][1],
-                                         stat['bids'][2][1],
-                                         stat['bids'][3][1],
-                                         stat['bids'][4][1],
-                                         ''])
+            with open('stat.csv', 'w', newline='', encoding='utf-8', buffering=1) as stat:  # output statistic file
+                output_stat_writer = csv.writer(stat, dialect='excel')
+                output_stat_writer.writerow(HEADERS)
+
+                for raw in wb_stat_reader:
+                    if i < KEYWORD_COUNT_LIMIT:
+                        print(f'{i+1} / {KEYWORD_COUNT_LIMIT}')
+                        stat = get_keyword_stat(window_id, 'name', 'value', raw[0], sleep=KEYWORD_STATISTICS_WAIT)
+                        # with open('log.txt', 'a', encoding='utf-8') as log:
+                        keyword, frequency = raw[0], f'{int(raw[1]):,}'.replace(',', ' ')
+                        log.write(f'\n"{keyword}" - {frequency}\n{stat}')
+                        if stat['categories']:
+                            output_stat_writer.writerow([keyword, frequency, '', '', '',
+                                                         stat['categories'][0],
+                                                         stat['bids'][0][1],
+                                                         stat['bids'][1][1],
+                                                         stat['bids'][2][1],
+                                                         stat['bids'][3][1],
+                                                         stat['bids'][4][1],
+                                                         ''])
+                        else:
+                            output_stat_writer.writerow([keyword, frequency])
+                        print(stat)
                     else:
-                        writer.writerow([keyword, frequency])
-                    print(stat)
-                else:
-                    break
-                i += 1
+                        break
+                    i += 1
 
-            # log.write(f'\nEND at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
+            log.write(f'\nEND at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
 
     time.sleep(1)
     bm.close_window(window_id)
-
