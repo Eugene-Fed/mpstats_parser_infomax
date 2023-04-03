@@ -105,13 +105,13 @@ if __name__ == '__main__':
     bm.open_window(stat_account['keywords'], sleep=1)
     with open(TEMP_KEYWORDS_PATH, 'r', newline='', encoding='utf-8') as f:
         i = 0
-        reader = csv.reader(f, delimiter=',')
-        # print(help(reader))
+        reader = csv.reader(f, delimiter=',')       # open wildberries data file
 
         # with open('stat.txt', 'a', encoding='utf-8') as log:  # log file
         #    log.write(f'\nSTART at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
-        with open('stat.csv', 'w', encoding='utf-8') as stat:  # log file
-            writer = csv.writer(stat)
+        with open('stat.csv', 'w', newline='', encoding='utf-8') as stat:  # log file
+            writer = csv.writer(stat, dialect='excel')
+            writer.writerow(HEADERS)
 
             for raw in reader:
                 if i < KEYWORD_COUNT_LIMIT:
