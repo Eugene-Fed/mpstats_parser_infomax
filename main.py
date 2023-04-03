@@ -14,9 +14,12 @@ from tqdm import tqdm
 
 TEMP_KEYWORDS_PATH = r"D:\Downloads\requests.csv"  # будет заменено на поиск реального расположения папки
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
-KEYWORD_COUNT_LIMIT = 100
+KEYWORD_COUNT_LIMIT = 5
 KEYWORD_STATISTICS_WAIT = 3                          # Время в секундах на ожидание загрузки страницы
-REQUIRED_PLACE_INDEXES = (1, 3, 5)                   # Задаем позиции по которым будем собирать статистику (начиная с 1)
+REQUIRED_PLACE_INDEXES = (1, 2,  3, 4, 5)            # Задаем позиции по которым будем собирать статистику (начиная с 1)
+HEADERS = ['Запрос', 'Частотность в мес.', 'Частотность в нед.', 'Изменение мес/мес, %', 'Изменение нед/нед, %',
+           'Приоритетная категория', '1 место', '2 место', '3 место', '4 место', '5 место',
+           'Объем продаж категории, руб']
 
 
 def log_in(window_id: str, account: dict, login_data: dict, sleep=0):
@@ -105,22 +108,35 @@ if __name__ == '__main__':
         reader = csv.reader(f, delimiter=',')
         # print(help(reader))
 
-        with open('stat.txt', 'a', encoding='utf-8') as f:  # log file
-            f.write(f'\nSTART at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
+        # with open('stat.txt', 'a', encoding='utf-8') as log:  # log file
+        #    log.write(f'\nSTART at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
+        with open('stat.csv', 'w', encoding='utf-8') as stat:  # log file
+            writer = csv.writer(stat)
 
             for raw in reader:
                 if i < KEYWORD_COUNT_LIMIT:
                     print(f'{i+1} / {KEYWORD_COUNT_LIMIT}')
                     stat = get_keyword_stat(window_id, 'name', 'value', raw[0], sleep=KEYWORD_STATISTICS_WAIT)
-                    # with open('stat.txt', 'a', encoding='utf-8') as f:
+                    # with open('stat.txt', 'a', encoding='utf-8') as log:
                     keyword, frequency = raw[0], f'{int(raw[1]):,}'.replace(',', ' ')
-                    f.write(f'\n"{keyword}" - {frequency}\n{stat}')
+                    # log.write(f'\n"{keyword}" - {frequency}\n{stat}')
+                    if stat['categories']:
+                        writer.writerow([keyword, frequency, '', '', '',
+                                         stat['categories'][0],
+                                         stat['bids'][0][1],
+                                         stat['bids'][1][1],
+                                         stat['bids'][2][1],
+                                         stat['bids'][3][1],
+                                         stat['bids'][4][1],
+                                         ''])
+                    else:
+                        writer.writerow([keyword, frequency])
                     print(stat)
                 else:
                     break
                 i += 1
 
-            f.write(f'\nEND at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
+            # log.write(f'\nEND at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
 
     time.sleep(1)
     bm.close_window(window_id)
