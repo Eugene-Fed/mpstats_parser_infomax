@@ -100,15 +100,22 @@ def set_text(handler: str, element: str, name: str, data: str, sleep=SLEEP):
     :return: None
     """
     time.sleep(sleep)
-    try:
-        driver.switch_to.window(handler)
-        element_input = find_elements(element, name)[0]    # temporarily pick up only the first element
-        element_input.clear()
-        element_input.send_keys(data)
 
-    except Exception as ex:
-        print("Element doesn't found")
-        print(ex)
+    repeat = True
+    while repeat:         # if element doesn't fond - refresh page
+        # TODO - rewrite to use Exception from `main.py` instead use it here
+        try:
+            driver.switch_to.window(handler)
+            element_input = find_elements(element, name)[0]    # temporarily pick up only the first element
+            element_input.clear()
+            element_input.send_keys(data)
+            repeat = False          # if element was found than exit from loop
+
+        except Exception as ex:
+            print(f"Element '{element}' -> '{name}' doesn't found")
+            print(ex)
+            time.sleep(int(SLEEP)*2)      # if element was not found than wait for 10 seconds, reload page and try again
+            driver.refresh()
 
 
 def click_element(handler: str, element: str, name: str, sleep=SLEEP):
