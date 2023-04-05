@@ -14,6 +14,7 @@ CHROME_PROFILE_PATH = r'C:\Users\eugen\AppData\Local\Google\Chrome\User Data'   
 WB_URL = r'https://seller.wildberries.ru/'
 TIMEOUT = 15                          # Time to waiting of page load. But doesn't work
 SLEEP = 0
+REPEAT = 10
 
 
 # Настройте параметры профиля для сохранения данных в нем
@@ -61,13 +62,14 @@ def close_window(handler: str):
         print(ex)
 
 
-def find_elements(element_type: str, name: str):
+def find_elements(element_type: str, name: str, repeat=REPEAT):
     """
     :param element_type: Type of element for search
     :param name: Element name value
+    :param repeat: Try to reload page to find element
     :return: Found element
     """
-    # TODO Waiting DOM ready before try to search any element
+
     if element_type == 'id':
         elements_input = driver.find_elements(By.ID, name)
     elif element_type == 'name':
@@ -88,6 +90,16 @@ def find_elements(element_type: str, name: str):
     return elements_input
 
 
+def reload_page(handler: str, sleep=SLEEP):
+    try:
+        driver.switch_to.window(handler)
+        time.sleep(sleep * 2)  # if element was not found than wait for 10 seconds, reload page and try again
+        driver.refresh()
+        time.sleep(sleep)
+    except Exception as ex:
+        print(ex)
+
+
 def set_text(handler: str, element: str, name: str, data: str, sleep=SLEEP):
     # TODO Rewrite to search elements by several tags with recursion
     """
@@ -101,7 +113,7 @@ def set_text(handler: str, element: str, name: str, data: str, sleep=SLEEP):
     """
     time.sleep(sleep)
 
-    repeat = True
+    repeat = 10
     while repeat:         # if element doesn't fond - refresh page
         # TODO - rewrite to use Exception from `main.py` instead use it here
         try:
@@ -109,13 +121,15 @@ def set_text(handler: str, element: str, name: str, data: str, sleep=SLEEP):
             element_input = find_elements(element, name)[0]    # temporarily pick up only the first element
             element_input.clear()
             element_input.send_keys(data)
-            repeat = False          # if element was found than exit from loop
+            repeat = 0          # if element was found than exit from loop
 
         except Exception as ex:
             print(f"Element '{element}' -> '{name}' doesn't found")
             print(ex)
-            time.sleep(int(SLEEP)*2)      # if element was not found than wait for 10 seconds, reload page and try again
+            time.sleep(sleep*2)      # if element was not found than wait for 10 seconds, reload page and try again
             driver.refresh()
+            time.sleep(sleep)
+            repeat -= 1
 
 
 def click_element(handler: str, element: str, name: str, sleep=SLEEP):

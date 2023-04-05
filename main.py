@@ -15,7 +15,7 @@ from tqdm import tqdm
 TEMP_KEYWORDS_PATH = r"D:\Downloads\requests.csv"  # будет заменено на поиск реального расположения папки
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
 KEYWORD_COUNT_LIMIT = 500
-KEYWORD_STATISTICS_WAIT = 5                          # Время в секундах на ожидание загрузки страницы
+KEYWORD_STATISTICS_WAIT = 3                          # Время в секундах на ожидание загрузки страницы
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Задаем позиции по которым будем собирать статистику (начиная с 1)
 HEADERS = ['Запрос', 'Частотность в мес.', 'Частотность в нед.', 'Изменение мес/мес, %', 'Изменение нед/нед, %',
            'Приоритетная категория', '1 место', '2 место', '3 место', '4 место', '5 место',
@@ -36,7 +36,8 @@ def log_in(window_id: str, account: dict, login_data: dict, sleep=0):
     # bm.click_element(window_id, 'class', 'sc-ipEyDJ', sleep=2)    # Press ENTER
 
 
-def parse_stat_table(field_tag_name: str, field_tag_value: str, sleep=0, positions=REQUIRED_PLACE_INDEXES) -> list:
+def parse_stat_table(window_id: str, field_tag_name: str, field_tag_value: str, sleep=0,
+                     positions=REQUIRED_PLACE_INDEXES) -> list:
     """
     Gets bids for required positions
     :param field_tag_name: element_type for searching statistics table
@@ -47,9 +48,13 @@ def parse_stat_table(field_tag_name: str, field_tag_value: str, sleep=0, positio
     """
     time.sleep(sleep)
     bids = []
+    cells = []
     rows = bm.find_elements(element_type=field_tag_name, name=field_tag_value)      # gets all rows grom stat table
     for p in positions:                 # searching only required positions
-        cells = rows[p-1].find_elements(By.TAG_NAME, 'div')         # lists start from `0` and that's why `p-1`
+        while not cells:
+            cells = rows[p-1].find_elements(By.TAG_NAME, 'div')         # lists start from `0` and that's why `p-1`
+            if not cells:
+                bm.reload_page(handler=window_id, sleep=sleep)
         nums = re.findall(r'\d+', cells[7].text)                    # we get only a number from value
         # nums = re.findall(r'\d*\.\d+|\d+', s)                     # for float
         cpm = [int(n) for n in nums][0]                             # we have only one number
@@ -81,7 +86,8 @@ def get_keyword_stat(window_id: str, field_tag_name, field_tag_value, keyword, s
     cat_div = bm.find_elements(element_type='class', name='sc-frJOEA')  # get `Prior categories` element
     if cat_div:
         categories = cat_div[0].text.split('\n')            # if `Prior categories` element not empty get categories
-        bids = parse_stat_table('class', 'MuiDataGrid-row')  # get Bids for `REQUIRED_PLACE_INDEXES`
+        bids = parse_stat_table(window_id=window_id, field_tag_name='class',
+                                field_tag_value='MuiDataGrid-row')  # get Bids for `REQUIRED_PLACE_INDEXES`
     return {'bids': bids, 'categories': categories}
 
 
