@@ -12,9 +12,9 @@ USER_DATA_DIR = r'Default'
 CHROME_PROFILE_NAME = r'Default'
 CHROME_PROFILE_PATH = r'C:\Users\eugen\AppData\Local\Google\Chrome\User Data'           # main
 WB_URL = r'https://seller.wildberries.ru/'
-TIMEOUT = 15                          # Time to waiting of page load. But doesn't work
-SLEEP = 0
-REPEAT = 10
+# TIMEOUT = 15                          # Time to waiting of page load. But doesn't work
+SLEEP = 1
+REPEAT = 5
 
 
 # Настройте параметры профиля для сохранения данных в нем
@@ -62,37 +62,45 @@ def close_window(handler: str):
         print(ex)
 
 
-def find_elements(element_type: str, name: str, repeat=REPEAT):
+def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPEAT):
     """
     :param element_type: Type of element for search
-    :param name: Element name value
+    :param element_name: Element name value
     :param repeat: Try to reload page to find element
     :return: Found element
     """
-
     if element_type == 'id':
-        elements_input = driver.find_elements(By.ID, name)
+        elements_input = driver.find_elements(By.ID, element_name)
     elif element_type == 'name':
-        elements_input = driver.find_elements(By.NAME, name)
+        elements_input = driver.find_elements(By.NAME, element_name)
     elif element_type == 'class':
-        elements_input = driver.find_elements(By.CLASS_NAME, name)
+        elements_input = driver.find_elements(By.CLASS_NAME, element_name)
     elif element_type == 'css':
-        elements_input = driver.find_elements(By.CSS_SELECTOR, name)
+        elements_input = driver.find_elements(By.CSS_SELECTOR, element_name)
     elif element_type == 'tag':
-        elements_input = driver.find_elements(By.TAG_NAME, name)
+        elements_input = driver.find_elements(By.TAG_NAME, element_name)
     elif element_type == 'link':
-        elements_input = driver.find_elements(By.LINK_TEXT, name)
+        elements_input = driver.find_elements(By.LINK_TEXT, element_name)
     elif element_type == 'xpath':
-        elements_input = driver.find_elements(By.XPATH, name)
+        elements_input = driver.find_elements(By.XPATH, element_name)
     elif element_type == 'partial':
-        elements_input = driver.find_elements(By.PARTIAL_LINK_TEXT, name)
+        elements_input = driver.find_elements(By.PARTIAL_LINK_TEXT, element_name)
 
+    if not elements_input:
+        if repeat:
+            reload_page(sleep=sleep)
+            return find_elements(element_type=element_type,
+                                 element_name=element_name, repeat=repeat - 1)     # recursion call
+        else:
+            print(f"Element '{element_type}' -> '{element_name}' doesn't found")
+            # raise Exception         # TODO - change to validate exception type
     return elements_input
 
 
-def reload_page(handler: str, sleep=SLEEP):
+def reload_page(handler='', sleep=SLEEP):
     try:
-        driver.switch_to.window(handler)
+        if handler:
+            driver.switch_to.window(handler)
         time.sleep(sleep * 2)  # if element was not found than wait for 10 seconds, reload page and try again
         driver.refresh()
         time.sleep(sleep)
@@ -100,51 +108,44 @@ def reload_page(handler: str, sleep=SLEEP):
         print(ex)
 
 
-def set_text(handler: str, element: str, name: str, data: str, sleep=SLEEP):
+def set_text(handler: str, element_type: str, element_name: str, data: str, sleep=SLEEP):
     # TODO Rewrite to search elements by several tags with recursion
     """
     Manipulating with text input fields
     :param handler: Window ID for manipulating
-    :param element: Type  of searching element
-    :param name: Name of searching element
+    :param element_type: Type  of searching element
+    :param element_name: Name of searching element
     :param data: Data to input
     :param sleep: Sleeping time in seconds
     :return: None
     """
     time.sleep(sleep)
 
-    repeat = 10
-    while repeat:         # if element doesn't fond - refresh page
-        # TODO - rewrite to use Exception from `main.py` instead use it here
-        try:
-            driver.switch_to.window(handler)
-            element_input = find_elements(element, name)[0]    # temporarily pick up only the first element
-            element_input.clear()
-            element_input.send_keys(data)
-            repeat = 0          # if element was found than exit from loop
+    # TODO - rewrite to use Exception from `main.py` instead use it here
+    try:
+        driver.switch_to.window(handler)
+        element_input = find_elements(element_type, element_name)    # temporarily pick up only the first element
+        if element_input:
+            element_input[0].clear()
+            element_input[0].send_keys(data)
 
-        except Exception as ex:
-            print(f"Element '{element}' -> '{name}' doesn't found")
-            print(ex)
-            time.sleep(sleep*2)      # if element was not found than wait for 10 seconds, reload page and try again
-            driver.refresh()
-            time.sleep(sleep)
-            repeat -= 1
+    except Exception as ex:
+        print(ex)
 
 
-def click_element(handler: str, element: str, name: str, sleep=SLEEP):
+def click_element(handler: str, element_type: str, element_name: str, sleep=SLEEP):
     """
     Manipulating with text input fields
     :param handler: Window ID for manipulating
-    :param element: Type of finding element
-    :param name: Name of finding element
+    :param element_type: Type of finding element
+    :param element_name: Name of finding element
     :param sleep: Sleeping time in seconds
     :return: None
     """
     time.sleep(sleep)
     try:
         driver.switch_to.window(handler)
-        element_click = find_elements(element, name)[0]
+        element_click = find_elements(element_type, element_name)[0]
         element_click.click()
 
     except Exception as ex:
@@ -152,12 +153,12 @@ def click_element(handler: str, element: str, name: str, sleep=SLEEP):
         print(ex)
 
 
-def click_key(handler: str, element: str, name: str, key='enter', sleep=SLEEP):
+def click_key(handler: str, element_type: str, element_name: str, key='enter', sleep=SLEEP):
     """
     Manipulating with text input fields
     :param handler: Window ID for manipulating
-    :param element: Type of finding element
-    :param name: Name of finding element
+    :param element_type: Type of finding element
+    :param element_name: Name of finding element
     :param key: Name of button to press
     :param sleep: Sleeping time in seconds
     :return: None
@@ -165,7 +166,7 @@ def click_key(handler: str, element: str, name: str, key='enter', sleep=SLEEP):
     time.sleep(sleep)
     try:
         driver.switch_to.window(handler)
-        element_click = find_elements(element, name)[0]
+        element_click = find_elements(element_type, element_name)[0]
         if key == 'enter':
             element_click.send_keys(Keys.ENTER)
         else:
@@ -178,17 +179,3 @@ def click_key(handler: str, element: str, name: str, key='enter', sleep=SLEEP):
 
 if __name__ == '__main__':
     print(help(driver.find_elements))
-
-
-
-
-#
-# try:
-#     driver.maximize_window()
-#     driver.get(WB_URL)
-#     time.sleep(50)
-# except Exception as ex:
-#     print(ex)
-# finally:
-#     driver.close()
-#     driver.quit()

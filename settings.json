@@ -20,6 +20,16 @@
             "name_value": "phoneNumber",
             "pass_key": "name",
             "pass_value": "password"
+        },
+        "keywords_stat": {
+            "prior_cat": {
+                "element_type": "class",
+                "element_name": "sc-fVuoVZ"
+            },
+            "bids_table": {
+                "element_type": "class",
+                "element_name": "MuiDataGrid-row"
+            }
         }
     }
 }
