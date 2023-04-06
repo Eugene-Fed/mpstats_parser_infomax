@@ -18,7 +18,7 @@ REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Задаем позици�
 KEYWORDS_MONTH_PATH = r"D:\Downloads\requests_month.csv"  # будет заменено на поиск реального расположения папки
 KEYWORDS_WEEK_PATH = r"D:\Downloads\requests_week.csv"  # будет заменено на поиск реального расположения папки
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
-OUTPUT_STAT = f'stat_{KEYWORD_COUNT_LIMIT}_only_month.csv'
+OUTPUT_STAT = f'stat_{KEYWORD_COUNT_LIMIT}.csv'
 LOG_FILE = r'log.txt'
 
 HEADERS = ['Запрос', 'Частотность в мес.', 'Частотность в нед.', 'Изменение мес/мес, %', 'Изменение нед/нед, %',
@@ -52,20 +52,27 @@ def parse_stat_table(window_id: str, element_type: str, element_name: str, sleep
     """
     time.sleep(sleep)
     bids = []
-    cells = []
+    nums = []
     # gets all rows grom stat table
     rows = bm.find_elements(element_type=element_type, element_name=element_name, sleep=sleep)
-    for p in positions:                 # searching only required positions
-        # while not cells:
-        if rows:
-            cells = rows[p-1].find_elements(By.TAG_NAME, 'div')         # lists start from `0` and that's why `p-1`
-            # if not cells:
-            #     bm.reload_page(handler=window_id, sleep=sleep)
-        nums = re.findall(r'\d+', cells[7].text)                    # we get only a number from value
-        # nums = re.findall(r'\d*\.\d+|\d+', s)                     # for float
-        cpm = [int(n) for n in nums][0]                             # we have only one number
-        # print(f'Place Index: {p}, Bid: {cpm}')
-        bids.append((p, cpm))
+    if rows:
+        for p in positions:                 # searching only required positions
+            # cells = rows[p-1].find_elements(By.TAG_NAME, 'div')         # lists start from `0` and that's why `p-1`
+            cpm = ''
+            try:
+                cells = bm.find_elements(element_type='tag', element_name='div', element=rows[p-1], repeat=0)
+                if cells:
+                    nums = re.findall(r'\d+', cells[7].text)                    # we get only a number from value
+                    # nums = re.findall(r'\d*\.\d+|\d+', s)                     # for float
+                if nums:
+                    cpm = [int(n) for n in nums][0]                             # we have only one number
+            except IndexError as ie:
+                print(ie)
+            except Exception as e:
+                print(e)
+            finally:
+                # print(f'Place Index: {p}, Bid: {cpm}')
+                bids.append((p, cpm))
     return bids
 
 
@@ -135,6 +142,8 @@ if __name__ == '__main__':
                 output_stat_writer.writerow(HEADERS)
 
                 for raw in wb_stat_reader:
+                    if not raw:
+                        continue
                     if i < KEYWORD_COUNT_LIMIT:
                         print(f'{i+1} / {KEYWORD_COUNT_LIMIT}')
                         stat = get_keyword_stat(window_id, 'name', 'value', raw[0],
@@ -143,7 +152,7 @@ if __name__ == '__main__':
                         # with open(LOG_FILE, 'a', encoding='utf-8') as log:
                         keyword, month_frequency = raw[0], f'{int(raw[1]):,}'.replace(',', ' ')
                         week_frequency = keywords_week.pop(keyword, '')     # получаем значение недельной частотности
-                        log.write(f'\n"{keyword}" - {month_frequency}\n{stat}')
+                        # log.write(f'\n"{keyword}" - {month_frequency}\n{stat}')
 
                         # Если нашли элемент со статистикой категории, тогда сохраняем все прочие данные в таблицу
                         if stat['categories']:

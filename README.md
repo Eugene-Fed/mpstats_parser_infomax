@@ -3,7 +3,8 @@
 
 ### TODO list
 - [x] Use DOM Ready waiting instead of `time.sleep`. **DOESN'T WORK**
-- [ ] If exception "Out of range", than reload page.
+- [x] If exception "Out of range", than reload page
+- [ ] Load all CPMs and sort them by value before assign it to bids table
 - [ ] Write module to use `Headless Chrome`
 
 ### Tutorials

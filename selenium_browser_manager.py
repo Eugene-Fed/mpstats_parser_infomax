@@ -62,29 +62,37 @@ def close_window(handler: str):
         print(ex)
 
 
-def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPEAT):
+def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPEAT, element=None):
     """
     :param element_type: Type of element for search
     :param element_name: Element name value
+    :param sleep:
     :param repeat: Try to reload page to find element
+    :param element:
     :return: Found element
     """
+    # TODO - Use Optional parameter `element` to searching
+    if element:
+        search_in = element
+    else:
+        search_in = driver
+
     if element_type == 'id':
-        elements_input = driver.find_elements(By.ID, element_name)
+        elements_input = search_in.find_elements(By.ID, element_name)
     elif element_type == 'name':
-        elements_input = driver.find_elements(By.NAME, element_name)
+        elements_input = search_in.find_elements(By.NAME, element_name)
     elif element_type == 'class':
-        elements_input = driver.find_elements(By.CLASS_NAME, element_name)
+        elements_input = search_in.find_elements(By.CLASS_NAME, element_name)
     elif element_type == 'css':
-        elements_input = driver.find_elements(By.CSS_SELECTOR, element_name)
+        elements_input = search_in.find_elements(By.CSS_SELECTOR, element_name)
     elif element_type == 'tag':
-        elements_input = driver.find_elements(By.TAG_NAME, element_name)
+        elements_input = search_in.find_elements(By.TAG_NAME, element_name)
     elif element_type == 'link':
-        elements_input = driver.find_elements(By.LINK_TEXT, element_name)
+        elements_input = search_in.find_elements(By.LINK_TEXT, element_name)
     elif element_type == 'xpath':
-        elements_input = driver.find_elements(By.XPATH, element_name)
+        elements_input = search_in.find_elements(By.XPATH, element_name)
     elif element_type == 'partial':
-        elements_input = driver.find_elements(By.PARTIAL_LINK_TEXT, element_name)
+        elements_input = search_in.find_elements(By.PARTIAL_LINK_TEXT, element_name)
 
     if not elements_input:
         if repeat:
@@ -93,6 +101,7 @@ def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPE
                                  element_name=element_name, repeat=repeat - 1)     # recursion call
         else:
             print(f"Element '{element_type}' -> '{element_name}' doesn't found")
+            # elements_input = []
             # raise Exception         # TODO - change to validate exception type
     return elements_input
 
