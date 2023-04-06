@@ -12,12 +12,15 @@ import time
 import re
 from tqdm import tqdm
 
+KEYWORD_COUNT_LIMIT = 500
+KEYWORD_STATISTICS_WAIT = 3                          # Время в секундах на ожидание загрузки страницы
+REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Задаем позиции по которым будем собирать статистику (начиная с 1)
 KEYWORDS_MONTH_PATH = r"D:\Downloads\requests_month.csv"  # будет заменено на поиск реального расположения папки
 KEYWORDS_WEEK_PATH = r"D:\Downloads\requests_week.csv"  # будет заменено на поиск реального расположения папки
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
-KEYWORD_COUNT_LIMIT = 5
-KEYWORD_STATISTICS_WAIT = 3                          # Время в секундах на ожидание загрузки страницы
-REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Задаем позиции по которым будем собирать статистику (начиная с 1)
+OUTPUT_STAT = f'stat_{KEYWORD_COUNT_LIMIT}_only_month.csv'
+LOG_FILE = r'log.txt'
+
 HEADERS = ['Запрос', 'Частотность в мес.', 'Частотность в нед.', 'Изменение мес/мес, %', 'Изменение нед/нед, %',
            'Приоритетная категория', '1 место', '2 место', '3 место', '4 место', '5 место',
            'Объем продаж категории, руб']
@@ -103,6 +106,12 @@ if __name__ == '__main__':
     api_keys_file = Path(settings['api-keys_dir']) / Path(settings['api-keys_file'])
     api_keys = fm.load_json(file=api_keys_file)
 
+    # keywords_week = {}
+    # Создаем словарь всех значений для недельной частотности ключей
+    with open(KEYWORDS_WEEK_PATH, 'r', newline='', encoding='utf-8') as f:
+        wb_stat_reader = csv.reader(f, delimiter=',')
+        keywords_week = {key: f'{int(value):,}'.replace(',', ' ') for key, value in wb_stat_reader}
+
     # Load settings to variables
     bm.DRIVER_PATH = settings['webdriver_dir']
     stat_account = settings['bablo_url']
@@ -118,10 +127,10 @@ if __name__ == '__main__':
         i = 0
         wb_stat_reader = csv.reader(f, delimiter=',')       # open wildberries data file
 
-        with open('log.txt', 'a', encoding='utf-8', buffering=1) as log:  # log file
+        with open(LOG_FILE, 'a', encoding='utf-8', buffering=1) as log:  # log file
             log.write(f'\nSTART at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
 
-            with open('stat.csv', 'w', newline='', encoding='utf-8', buffering=1) as stat:  # output statistic file
+            with open(OUTPUT_STAT, 'w', newline='', encoding='utf-8', buffering=1) as stat:  # output statistic file
                 output_stat_writer = csv.writer(stat, dialect='excel')
                 output_stat_writer.writerow(HEADERS)
 
@@ -131,13 +140,16 @@ if __name__ == '__main__':
                         stat = get_keyword_stat(window_id, 'name', 'value', raw[0],
                                                 settings=settings['bablo_url']['keywords_stat'],
                                                 sleep=KEYWORD_STATISTICS_WAIT)
-                        # with open('log.txt', 'a', encoding='utf-8') as log:
-                        keyword, frequency = raw[0], f'{int(raw[1]):,}'.replace(',', ' ')
-                        log.write(f'\n"{keyword}" - {frequency}\n{stat}')
+                        # with open(LOG_FILE, 'a', encoding='utf-8') as log:
+                        keyword, month_frequency = raw[0], f'{int(raw[1]):,}'.replace(',', ' ')
+                        week_frequency = keywords_week.pop(keyword, '')     # получаем значение недельной частотности
+                        log.write(f'\n"{keyword}" - {month_frequency}\n{stat}')
+
+                        # Если нашли элемент со статистикой категории, тогда сохраняем все прочие данные в таблицу
                         if stat['categories']:
                             bids = [x[1] for x in stat['bids']]                 # Required bids
                             sales_volume = ''                                   # Volume of sales
-                            output_stats = [keyword, frequency, '', '', '', stat['categories'][0]]
+                            output_stats = [keyword, month_frequency, week_frequency, '', '', stat['categories'][0]]
                             output_stats.extend(bids)
                             output_stats.append(sales_volume)
                             output_stat_writer.writerow(output_stats)
@@ -150,7 +162,8 @@ if __name__ == '__main__':
                             #                              stat['bids'][4][1],
                             #                              ''])
                         else:
-                            output_stat_writer.writerow([keyword, frequency])
+                            # Если категория не обнаружена, значит в `Кнопке Бабло отсутствуют данные`
+                            output_stat_writer.writerow([keyword, month_frequency, week_frequency])
                         print(stat)
                     else:
                         break

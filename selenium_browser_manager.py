@@ -178,4 +178,4 @@ def click_key(handler: str, element_type: str, element_name: str, key='enter', s
 
 
 if __name__ == '__main__':
-    print(help(driver.find_elements))
+    print(help(dict))
