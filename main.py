@@ -9,16 +9,17 @@ import selenium_browser_manager as bm  # Управление браузером
 from selenium.webdriver.common.by import By
 from pathlib import Path
 import time
+from datetime import datetime
 import re
 from tqdm import tqdm
 
-KEYWORD_COUNT_LIMIT = 500
+KEYWORD_COUNT_LIMIT = 750
 KEYWORD_STATISTICS_WAIT = 3                          # Время в секундах на ожидание загрузки страницы
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Задаем позиции по которым будем собирать статистику (начиная с 1)
 KEYWORDS_MONTH_PATH = r"D:\Downloads\requests_month.csv"  # будет заменено на поиск реального расположения папки
 KEYWORDS_WEEK_PATH = r"D:\Downloads\requests_week.csv"  # будет заменено на поиск реального расположения папки
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
-OUTPUT_STAT = f'stat_{KEYWORD_COUNT_LIMIT}.csv'
+OUTPUT_STAT = f'D:\\Downloads\\stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
 LOG_FILE = r'log.txt'
 
 HEADERS = ['Запрос', 'Частотность в мес.', 'Частотность в нед.', 'Изменение мес/мес, %', 'Изменение нед/нед, %',

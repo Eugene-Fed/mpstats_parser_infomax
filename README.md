@@ -4,7 +4,9 @@
 ### TODO list
 - [x] Use DOM Ready waiting instead of `time.sleep`. **DOESN'T WORK**
 - [x] If exception "Out of range", than reload page
+- [ ] Use filled CPM values instead of `0` for the 1st, 2nd and 3rd places
 - [ ] Load all CPMs and sort them by value before assign it to bids table
+- [ ] Create module to use standart OS `Download` page for input and output data files
 - [ ] Write module to use `Headless Chrome`
 
 ### Tutorials
