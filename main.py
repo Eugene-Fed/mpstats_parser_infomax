@@ -13,7 +13,8 @@ from datetime import datetime
 import re
 from tqdm import tqdm
 
-KEYWORD_COUNT_LIMIT = 750
+KEYWORD_COUNT_START = 952
+KEYWORD_COUNT_LIMIT = 2000
 KEYWORD_STATISTICS_WAIT = 3                          # Время в секундах на ожидание загрузки страницы
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Задаем позиции по которым будем собирать статистику (начиная с 1)
 KEYWORDS_MONTH_PATH = r"D:\Downloads\requests_month.csv"  # будет заменено на поиск реального расположения папки
