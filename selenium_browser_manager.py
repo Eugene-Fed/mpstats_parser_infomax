@@ -52,6 +52,10 @@ def open_window(url: str, sleep=SLEEP) -> str:
         print(ex)
 
 
+def add_tab(sleep=SLEEP) -> str:
+    pass
+
+
 def close_window(handler: str):
     try:
         driver.switch_to.window(handler)
@@ -62,19 +66,22 @@ def close_window(handler: str):
         print(ex)
 
 
-def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPEAT, element=None):
+def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPEAT, element=None, window_id=None):
     """
+    :param window_id: Window ID for manipulating. SHOULD TO BE FILLED IF `ELEMENT` IS EMPTY!!!
     :param element_type: Type of element for search
     :param element_name: Element name value
-    :param sleep:
+    :param sleep: Time to wait in seconds
     :param repeat: Try to reload page to find element
-    :param element:
+    :param element: Web element to search any other elements in it
     :return: Found element
     """
     # TODO - Use Optional parameter `element` to searching
     if element:
         search_in = element
     else:
+        if window_id:
+            driver.switch_to.window(window_id)
         search_in = driver
 
     if element_type == 'id':
@@ -106,7 +113,13 @@ def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPE
     return elements_input
 
 
-def reload_page(handler='', sleep=SLEEP):
+def reload_page(handler=None, sleep=SLEEP):
+    """
+    Reloading page
+    :param handler: Use to specify current window
+    :param sleep: Time to wain in seconds
+    :return:
+    """
     try:
         if handler:
             driver.switch_to.window(handler)
@@ -117,35 +130,39 @@ def reload_page(handler='', sleep=SLEEP):
         print(ex)
 
 
-def set_text(handler: str, element_type: str, element_name: str, data: str, sleep=SLEEP):
+def set_text(element_type: str, element_name: str, data: str, sleep=SLEEP, element=None, window_id=None):
     # TODO Rewrite to search elements by several tags with recursion
     """
     Manipulating with text input fields
-    :param handler: Window ID for manipulating
+    :param window_id: Window ID for manipulating
     :param element_type: Type  of searching element
     :param element_name: Name of searching element
     :param data: Data to input
     :param sleep: Sleeping time in seconds
+    :param element:
     :return: None
     """
+
     time.sleep(sleep)
 
     # TODO - rewrite to use Exception from `main.py` instead use it here
     try:
-        driver.switch_to.window(handler)
-        element_input = find_elements(element_type, element_name)    # temporarily pick up only the first element
+        # TODO - Use Optional parameter `element` to searching
+        if window_id:
+            driver.switch_to.window(window_id)
+        element_input = find_elements(element_type, element_name, element=element, window_id=window_id)
         if element_input:
-            element_input[0].clear()
+            element_input[0].clear()                # temporarily pick up only the first element
             element_input[0].send_keys(data)
 
     except Exception as ex:
         print(ex)
 
 
-def click_element(handler: str, element_type: str, element_name: str, sleep=SLEEP):
+def click_element(element_type: str, element_name: str, sleep=SLEEP, window_id=None, element=None):
     """
     Manipulating with text input fields
-    :param handler: Window ID for manipulating
+    :param window_id: Window ID for manipulating
     :param element_type: Type of finding element
     :param element_name: Name of finding element
     :param sleep: Sleeping time in seconds
@@ -153,9 +170,11 @@ def click_element(handler: str, element_type: str, element_name: str, sleep=SLEE
     """
     time.sleep(sleep)
     try:
-        driver.switch_to.window(handler)
-        element_click = find_elements(element_type, element_name)[0]
-        element_click.click()
+        if window_id:
+            driver.switch_to.window(window_id)
+        element_click = find_elements(element_type, element_name, window_id=window_id, element=element)
+        if element_click:
+            element_click[0].click()        # temporarily pick up only the first element
 
     except Exception as ex:
         print("Element doesn't found")

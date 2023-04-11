@@ -15,7 +15,9 @@ from tqdm import tqdm
 
 KEYWORD_COUNT_START = 952
 KEYWORD_COUNT_LIMIT = 2000
-KEYWORD_STATISTICS_WAIT = 3                          # Время в секундах на ожидание загрузки страницы
+KEYWORD_STAT = False                                    # Using to switch on/off updating of Keywords statistics
+CATEGORY_STAT = True                                    # Using to switch on/off updating of Categories statistics
+KEYWORD_STATISTICS_WAIT = 3                             # Время в секундах на ожидание загрузки страницы
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Задаем позиции по которым будем собирать статистику (начиная с 1)
 KEYWORDS_MONTH_PATH = r"D:\Downloads\requests_month.csv"  # будет заменено на поиск реального расположения папки
 KEYWORDS_WEEK_PATH = r"D:\Downloads\requests_week.csv"  # будет заменено на поиск реального расположения папки
@@ -39,7 +41,6 @@ def log_in(window_id: str, account: dict, login_data: dict, sleep=0):
     bm.set_text(window_id, login_data['name_key'], login_data['name_value'], account['login'], sleep=sleep)   # Set name
     bm.set_text(window_id, login_data['pass_key'], login_data['pass_value'], account['pass'], sleep=sleep)    # Set pass
     bm.click_key(window_id, login_data['pass_key'], login_data['pass_value'], key='enter', sleep=sleep)
-    # bm.click_element(window_id, 'class', 'sc-ipEyDJ', sleep=2)    # Press ENTER
 
 
 def parse_stat_table(window_id: str, element_type: str, element_name: str, sleep=0,
@@ -108,13 +109,7 @@ def get_keyword_stat(window_id: str, element_type: str, element_name: str, keywo
     return {'bids': bids, 'categories': categories}
 
 
-if __name__ == '__main__':
-    # TODO - Rewrite to use `DOM Ready` factor instead of sleeping. FIX - it doesn't work!!! Use time.time.sleep()
-    # Load files with settings
-    settings = fm.load_json()  # Loading settings file
-    api_keys_file = Path(settings['api-keys_dir']) / Path(settings['api-keys_file'])
-    api_keys = fm.load_json(file=api_keys_file)
-
+def update_keywords(settings, account, webdriver_dir='drivers/chromedriver.exe') -> None:
     # keywords_week = {}
     # Создаем словарь всех значений для недельной частотности ключей
     with open(KEYWORDS_WEEK_PATH, 'r', newline='', encoding='utf-8') as f:
@@ -122,19 +117,18 @@ if __name__ == '__main__':
         keywords_week = {key: f'{int(value):,}'.replace(',', ' ') for key, value in wb_stat_reader}
 
     # Load settings to variables
-    bm.DRIVER_PATH = settings['webdriver_dir']
-    stat_account = settings['bablo_url']
-    account = api_keys['bablo_btn']['accounts'][0]          # login data for `bablo button`
+    bm.DRIVER_PATH = webdriver_dir
+    # account = api_keys['bablo_btn']['accounts'][0]  # login data for `bablo button`
 
     # Start to use browser
-    window_id = bm.open_window(stat_account['login'])       # open window with `bablo button`
-    log_in(window_id=window_id, account=account, login_data=stat_account['login_data'])       # log in at `Bablo Button`
+    window_id = bm.open_window(settings['login'])  # open window with `bablo button`
+    log_in(window_id=window_id, account=account, login_data=settings['login_data'])  # log in at `Bablo Button`
 
     # Open keyword stat page
-    bm.open_window(stat_account['keywords'], sleep=1)
+    bm.open_window(settings['keywords'], sleep=1)
     with open(KEYWORDS_MONTH_PATH, 'r', newline='', encoding='utf-8') as f:
         i = 0
-        wb_stat_reader = csv.reader(f, delimiter=',')       # open wildberries data file
+        wb_stat_reader = csv.reader(f, delimiter=',')  # open wildberries data file
 
         with open(LOG_FILE, 'a', encoding='utf-8', buffering=1) as log:  # log file
             log.write(f'\nSTART at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
@@ -147,19 +141,19 @@ if __name__ == '__main__':
                     if not raw:
                         continue
                     if i < KEYWORD_COUNT_LIMIT:
-                        print(f'{i+1} / {KEYWORD_COUNT_LIMIT}')
+                        print(f'{i + 1} / {KEYWORD_COUNT_LIMIT}')
                         stat = get_keyword_stat(window_id, 'name', 'value', raw[0],
                                                 settings=settings['bablo_url']['keywords_stat'],
                                                 sleep=KEYWORD_STATISTICS_WAIT)
                         # with open(LOG_FILE, 'a', encoding='utf-8') as log:
                         keyword, month_frequency = raw[0], f'{int(raw[1]):,}'.replace(',', ' ')
-                        week_frequency = keywords_week.pop(keyword, '')     # получаем значение недельной частотности
+                        week_frequency = keywords_week.pop(keyword, '')  # получаем значение недельной частотности
                         # log.write(f'\n"{keyword}" - {month_frequency}\n{stat}')
 
                         # Если нашли элемент со статистикой категории, тогда сохраняем все прочие данные в таблицу
                         if stat['categories']:
-                            bids = [x[1] for x in stat['bids']]                 # Required bids
-                            sales_volume = ''                                   # Volume of sales
+                            bids = [x[1] for x in stat['bids']]  # Required bids
+                            sales_volume = ''  # Volume of sales
                             output_stats = [keyword, month_frequency, week_frequency, '', '', stat['categories'][0]]
                             output_stats.extend(bids)
                             output_stats.append(sales_volume)
@@ -184,3 +178,40 @@ if __name__ == '__main__':
 
     time.sleep(1)
     bm.close_window(window_id)
+
+
+def update_categories(settings, account, webdriver_dir='drivers/chromedriver.exe'):
+    bm.DRIVER_PATH = webdriver_dir
+
+    # Start to use browser
+    window_id = bm.open_window(settings['login'])  # Open auth window for `MP Stats`
+    input_elements = bm.find_elements(element_type='class', element_name='input-form', window_id=window_id)
+    # TODO - rewrite use `log_in()` function
+    # log_in(window_id=window_id, account=account, login_data=settings['login_data'])     # Enter login data
+    # TODO - rewrite to choose fields by name, not by index
+    bm.set_text(element=input_elements[0], element_type='tag', element_name='input', data=account['login'])
+    bm.set_text(element=input_elements[1], element_type='tag', element_name='input', data=account['pass'])
+    bm.click_element(element=input_elements[2], element_type='tag', element_name='input')
+
+
+    # Open keyword stat page
+    window_id = bm.open_window(settings['category'], sleep=1)
+    #
+    # time.sleep(10)
+    bm.close_window(window_id)
+
+
+if __name__ == '__main__':
+    # TODO - Rewrite to use `DOM Ready` factor instead of sleeping. FIX - it doesn't work!!! Use time.time.sleep()
+    # Load files with settings
+    settings = fm.load_json()  # Loading settings file
+    api_keys_file = Path(settings['api-keys_dir']) / Path(settings['api-keys_file'])
+    api_keys = fm.load_json(file=api_keys_file)
+    if KEYWORD_STAT:
+        update_keywords(settings=settings['bablo_button'][0],
+                        account=api_keys['bablo_btn']['accounts'][0],
+                        webdriver_dir=settings['webdriver_dir'])
+    if CATEGORY_STAT:
+        update_categories(settings=settings['mpstats'][0],
+                          account=api_keys['mp_stats']['accounts'][0],
+                          webdriver_dir=settings['webdriver_dir'])

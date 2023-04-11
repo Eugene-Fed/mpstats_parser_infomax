@@ -2,10 +2,10 @@
     "webdriver_dir": "drivers/chromedriver.exe",
     "api-keys_dir": "api-keys",
     "api-keys_file": "api-keys.json",
-    "mpstats_url": [
+    "mpstats": [
         {
             "login": "https://analitika-wb-ozon.pro/auth",
-            "keywords": "https://analitika-wb-ozon.pro/wb/category?url=",
+            "category": "https://analitika-wb-ozon.pro/wb/category?url=",
             "login_data": {
                 "name_key": "id",
                 "name_value": "email",
@@ -24,24 +24,26 @@
             }
         }
     ],
-    "bablo_url": {
-        "login": "https://www.knopka-bablo.online/login",
-        "keywords": "https://www.knopka-bablo.online/current-bets",
-        "login_data": {
-            "name_key": "name",
-            "name_value": "phoneNumber",
-            "pass_key": "name",
-            "pass_value": "password"
-        },
-        "keywords_stat": {
-            "prior_cat": {
-                "element_type": "class",
-                "element_name": "sc-fVuoVZ"
+    "bablo_button": [
+        {
+            "login": "https://www.knopka-bablo.online/login",
+            "keywords": "https://www.knopka-bablo.online/current-bets",
+            "login_data": {
+                "name_key": "name",
+                "name_value": "phoneNumber",
+                "pass_key": "name",
+                "pass_value": "password"
             },
-            "bids_table": {
-                "element_type": "class",
-                "element_name": "MuiDataGrid-row"
+            "keywords_stat": {
+                "prior_cat": {
+                    "element_type": "class",
+                    "element_name": "sc-fVuoVZ"
+                },
+                "bids_table": {
+                    "element_type": "class",
+                    "element_name": "MuiDataGrid-row"
+                }
             }
         }
-    }
+    ]
 }
