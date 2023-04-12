@@ -207,4 +207,15 @@ def click_key(element_type: str, element_name: str, key='enter', sleep=SLEEP, wi
 
 
 if __name__ == '__main__':
-    print(help(dict))
+    # TODO - clear it! Just for test
+    google_window = open_window('https://google.com', sleep=3)  # Open auth window for `MP Stats`
+    driver.execute_script("window.open('');")
+    driver.switch_to.window(driver.window_handles[1])
+    driver.get('https://ya.ru')
+    time.sleep(3)
+    driver.switch_to.window(google_window)
+    time.sleep(3)
+    print(f'{google_window}\n{driver.window_handles}')
+    close_window(driver.window_handles[1])
+    time.sleep(3)
+    close_window(google_window)
