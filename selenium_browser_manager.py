@@ -181,10 +181,10 @@ def click_element(element_type: str, element_name: str, sleep=SLEEP, window_id=N
         print(ex)
 
 
-def click_key(handler: str, element_type: str, element_name: str, key='enter', sleep=SLEEP):
+def click_key(element_type: str, element_name: str, key='enter', sleep=SLEEP, window_id=None):
     """
     Manipulating with text input fields
-    :param handler: Window ID for manipulating
+    :param window_id: Window ID for manipulating
     :param element_type: Type of finding element
     :param element_name: Name of finding element
     :param key: Name of button to press
@@ -193,7 +193,8 @@ def click_key(handler: str, element_type: str, element_name: str, key='enter', s
     """
     time.sleep(sleep)
     try:
-        driver.switch_to.window(handler)
+        if window_id:
+            driver.switch_to.window(window_id)
         element_click = find_elements(element_type, element_name)[0]
         if key == 'enter':
             element_click.send_keys(Keys.ENTER)

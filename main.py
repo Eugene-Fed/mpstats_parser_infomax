@@ -14,9 +14,9 @@ import re
 from tqdm import tqdm
 
 KEYWORD_COUNT_START = 952
-KEYWORD_COUNT_LIMIT = 2000
-KEYWORD_STAT = False                                    # Using to switch on/off updating of Keywords statistics
-CATEGORY_STAT = True                                    # Using to switch on/off updating of Categories statistics
+KEYWORD_COUNT_LIMIT = 2
+KEYWORD_STAT = True                                    # Using to switch on/off updating of Keywords statistics
+CATEGORY_STAT = False                                    # Using to switch on/off updating of Categories statistics
 KEYWORD_STATISTICS_WAIT = 3                             # Время в секундах на ожидание загрузки страницы
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Задаем позиции по которым будем собирать статистику (начиная с 1)
 KEYWORDS_MONTH_PATH = r"D:\Downloads\requests_month.csv"  # будет заменено на поиск реального расположения папки
@@ -38,9 +38,9 @@ def log_in(window_id: str, account: dict, login_data: dict, sleep=0):
     :param login_data: Settings for searching text fields
     :return: None
     """
-    bm.set_text(window_id, login_data['name_key'], login_data['name_value'], account['login'], sleep=sleep)   # Set name
-    bm.set_text(window_id, login_data['pass_key'], login_data['pass_value'], account['pass'], sleep=sleep)    # Set pass
-    bm.click_key(window_id, login_data['pass_key'], login_data['pass_value'], key='enter', sleep=sleep)
+    bm.set_text(login_data['name_key'], login_data['name_value'], account['login'], sleep=sleep, window_id=window_id)   # Set name
+    bm.set_text(login_data['pass_key'], login_data['pass_value'], account['pass'], sleep=sleep, window_id=window_id)    # Set pass
+    bm.click_key(login_data['pass_key'], login_data['pass_value'], key='enter', sleep=sleep, window_id=window_id)
 
 
 def parse_stat_table(window_id: str, element_type: str, element_name: str, sleep=0,
@@ -92,8 +92,8 @@ def get_keyword_stat(window_id: str, element_type: str, element_name: str, keywo
     :return:
     """
     time.sleep(sleep)
-    bm.set_text(window_id, element_type, element_name, keyword, sleep=sleep)       # input key at text field
-    bm.click_key(window_id, element_type, element_name, key='enter')      # press ENTER on keyboard
+    bm.set_text(element_type, element_name, keyword, sleep=sleep, window_id=window_id)       # input key at text field
+    bm.click_key(element_type, element_name, key='enter', window_id=window_id)      # press ENTER on keyboard
     print(f'Keyword: "{keyword}"')
 
     categories = []
@@ -143,7 +143,7 @@ def update_keywords(settings, account, webdriver_dir='drivers/chromedriver.exe')
                     if i < KEYWORD_COUNT_LIMIT:
                         print(f'{i + 1} / {KEYWORD_COUNT_LIMIT}')
                         stat = get_keyword_stat(window_id, 'name', 'value', raw[0],
-                                                settings=settings['bablo_url']['keywords_stat'],
+                                                settings=settings['keywords_stat'],
                                                 sleep=KEYWORD_STATISTICS_WAIT)
                         # with open(LOG_FILE, 'a', encoding='utf-8') as log:
                         keyword, month_frequency = raw[0], f'{int(raw[1]):,}'.replace(',', ' ')
