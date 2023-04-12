@@ -6,7 +6,7 @@
         {
             "login": "https://analitika-wb-ozon.pro/auth",
             "category_id": "https://analitika-wb-ozon.pro/wb/subject?id=[number]",
-            "category_volume": "https://analitika-wb-ozon.pro/wb/category?url=[Ссылка%20на%20категорию %2F Тут%20вложенная%20категория]",
+            "category_volume": "https://analitika-wb-ozon.pro/wb/category?url=[Ссылка_%20_на_%20_категорию %2F Подкатегория]",
             "keyword_volume": "https://analitika-wb-ozon.pro/seo/keyword/[keyword]",
             "login_data": {
                 "name_key": "id",

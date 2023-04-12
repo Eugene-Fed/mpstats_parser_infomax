@@ -15,8 +15,9 @@ from tqdm import tqdm
 
 KEYWORD_COUNT_START = 952
 KEYWORD_COUNT_LIMIT = 2
-KEYWORD_STAT = True                                    # Using to switch on/off updating of Keywords statistics
-CATEGORY_STAT = False                                    # Using to switch on/off updating of Categories statistics
+NUMBER_OF_CATEGORIES = 5                             # 8500
+KEYWORD_STAT = False                                    # Using to switch on/off updating of Keywords statistics
+CATEGORY_STAT = True                                    # Using to switch on/off updating of Categories statistics
 KEYWORD_STATISTICS_WAIT = 3                             # Время в секундах на ожидание загрузки страницы
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Задаем позиции по которым будем собирать статистику (начиная с 1)
 KEYWORDS_MONTH_PATH = r"D:\Downloads\requests_month.csv"  # будет заменено на поиск реального расположения папки
@@ -193,11 +194,15 @@ def update_categories(settings, account, webdriver_dir='drivers/chromedriver.exe
     bm.set_text(element=input_elements[1], element_type='tag', element_name='input', data=account['pass'])
     bm.click_element(element=input_elements[2], element_type='tag', element_name='input')
 
+    pattern = re.compile(r'\[.+\]$')  # RegEx pattern to create Category ID URL
+    for idx in range(NUMBER_OF_CATEGORIES):
+        repl = str(idx+1)                       # because we have not 0th category
+        category_id_url = pattern.sub(repl, settings['category_id'])
 
-    # Open keyword stat page
-    window_id = bm.open_window(settings['category'], sleep=1)
-    #
-    # time.sleep(10)
+        # Open keyword stat page
+        window_id = bm.open_window(category_id_url, sleep=1)
+        #
+        time.sleep(5)
     bm.close_window(window_id)
 
 
