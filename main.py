@@ -31,7 +31,7 @@ HEADERS = ['Запрос', 'Частотность в мес.', 'Частотн�
            'Объем продаж категории, руб', 'Объем продаж по запросу, руб']
 
 
-def log_in(window_id: str, account: dict, login_data: dict, sleep=0):
+def log_in(account: dict, login_data: dict, sleep=0, key='enter', button=None, element=None, window_id=None) -> None:
     """
     Function to Log in
     :param window_id: Window object from Selenium
@@ -39,9 +39,16 @@ def log_in(window_id: str, account: dict, login_data: dict, sleep=0):
     :param login_data: Settings for searching text fields
     :return: None
     """
-    bm.set_text(login_data['name_key'], login_data['name_value'], account['login'], sleep=sleep, window_id=window_id)   # Set name
-    bm.set_text(login_data['pass_key'], login_data['pass_value'], account['pass'], sleep=sleep, window_id=window_id)    # Set pass
-    bm.click_key(login_data['pass_key'], login_data['pass_value'], key='enter', sleep=sleep, window_id=window_id)
+    bm.set_text(element_type=login_data['name_key'], element_name=login_data['name_value'],
+                data=account['login'], sleep=sleep, window_id=window_id, element=element)   # Set name
+    bm.set_text(element_type=login_data['pass_key'], element_name=login_data['pass_value'],
+                data=account['pass'], sleep=sleep, window_id=window_id, element=element)    # Set pass
+    if button:                                                                       # If given than click Button
+        bm.click_element(element_type=account['button_key'], element_name=account['button_value'],
+                         sleep=sleep, window_id=window_id, element=element)
+    else:                                                                           # Else press Key
+        bm.click_key(element_type=login_data['pass_key'], element_name=login_data['pass_value'],
+                     key=key, sleep=sleep, window_id=window_id)
 
 
 def parse_stat_table(window_id: str, element_type: str, element_name: str, sleep=0,
@@ -181,23 +188,28 @@ def update_keywords(settings, account, webdriver_dir='drivers/chromedriver.exe')
     bm.close_window(window_id)
 
 
-def update_categories(settings, account, webdriver_dir='drivers/chromedriver.exe'):
-    bm.DRIVER_PATH = webdriver_dir
+def update_categories(settings, account, window_id=None, webdriver_dir=None, mpstats=True) -> None:
+    if webdriver_dir:
+        bm.DRIVER_PATH = webdriver_dir
+        window_id = bm.open_window(settings['urls']['login'])  # Open auth window for `MP Stats`
 
-    # Start to use browser
-    window_id = bm.open_window(settings['login'])  # Open auth window for `MP Stats`
-    input_elements = bm.find_elements(element_type='class', element_name='input-form', window_id=window_id)
     # TODO - rewrite use `log_in()` function
-    # log_in(window_id=window_id, account=account, login_data=settings['login_data'])     # Enter login data
-    # TODO - rewrite to choose fields by name, not by index
-    bm.set_text(element=input_elements[0], element_type='tag', element_name='input', data=account['login'])
-    bm.set_text(element=input_elements[1], element_type='tag', element_name='input', data=account['pass'])
-    bm.click_element(element=input_elements[2], element_type='tag', element_name='input')
+    if mpstats:                                 # Use standard login interface if using `MPStats.io`
+        log_in(window_id=window_id, account=account, login_data=settings['login_data'])     # Enter login data
+
+    else:                                       # Use custom login interface if using `Skladchina`
+        input_elements = bm.find_elements(element_type='class', element_name='input-form', window_id=window_id)
+        bm.set_text(element=input_elements[0], element_type=settings['login_data']['name_key'],
+                    element_name=settings['login_data']['name_value'], data=account['login'])
+        bm.set_text(element=input_elements[1], element_type=settings['login_data']['pass_key'],
+                    element_name=settings['login_data']['pass_value'], data=account['pass'])
+        bm.click_element(element=input_elements[2], element_type=settings['login_data']['button_key'],
+                         element_name=settings['login_data']['button_value'])
 
     pattern = re.compile(r'\[.+\]$')  # RegEx pattern to create Category ID URL
     for idx in range(NUMBER_OF_CATEGORIES):
         repl = str(idx+1)                       # because we have not 0th category
-        category_id_url = pattern.sub(repl, settings['category_id'])
+        category_id_url = pattern.sub(repl, settings['urls']['category_id'])
 
         # Open keyword stat page
         window_id = bm.open_window(category_id_url, sleep=1)
@@ -217,6 +229,7 @@ if __name__ == '__main__':
                         account=api_keys['bablo_btn']['accounts'][0],
                         webdriver_dir=settings['webdriver_dir'])
     if CATEGORY_STAT:
-        update_categories(settings=settings['mpstats'][0],
-                          account=api_keys['mp_stats']['accounts'][0],
-                          webdriver_dir=settings['webdriver_dir'])
+        update_categories(settings=settings['mpstats'][1],
+                          account=api_keys['mp_stats']['accounts'][1],
+                          webdriver_dir=settings['webdriver_dir'],
+                          mpstats=True)

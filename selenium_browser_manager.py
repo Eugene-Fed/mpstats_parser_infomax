@@ -52,8 +52,17 @@ def open_window(url: str, sleep=SLEEP) -> str:
         print(ex)
 
 
-def add_tab(sleep=SLEEP) -> str:
-    pass
+def add_tab(url: str) -> str:
+    driver.execute_script(f"window.open('{url}');")         # TODO: try to use standard Selenium tab interface
+    driver.switch_to.new_window()
+    # driver.switch_to.window(driver.window_handles[-1])     # An alternate
+
+    return driver.current_window_handle
+
+
+def change_tab(window_id: str) -> str:
+    driver.switch_to.window(window_id)  # An alternate
+    return driver.current_window_handle
 
 
 def close_window(handler: str):
@@ -104,8 +113,10 @@ def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPE
     if not elements_input:
         if repeat:
             reload_page(sleep=sleep)
+            # DAMN RECURSION CALL
             return find_elements(element_type=element_type,
-                                 element_name=element_name, repeat=repeat - 1)     # recursion call
+                                 element_name=element_name,
+                                 repeat=repeat-1)
         else:
             print(f"Element '{element_type}' -> '{element_name}' doesn't found")
             # elements_input = []
@@ -206,12 +217,23 @@ def click_key(element_type: str, element_name: str, key='enter', sleep=SLEEP, wi
         print(ex)
 
 
+def new_tab(driver_object, url="about:blank"):
+    # TODO - test this way to generate new Tabs
+    wnd = driver.execute(webdriver.common.action_chains.Command.NEW_WINDOW)
+    handle = wnd["value"]["handle"]
+    driver_object.switch_to.window(handle)
+    driver_object.get(url)     # changes the handle
+    return driver_object.current_window_handle
+
+
 if __name__ == '__main__':
     # TODO - clear it! Just for test
     google_window = open_window('https://google.com', sleep=3)  # Open auth window for `MP Stats`
-    driver.execute_script("window.open('');")
-    driver.switch_to.window(driver.window_handles[1])
-    driver.get('https://ya.ru')
+    driver.execute_script("window.open('https://ya.ru');")
+    # windows_before = driver.current_window_handle
+    # driver.switch_to.new_window()     # An alternate
+    driver.switch_to.window(driver.window_handles[-1])
+    # driver.get('https://ya.ru')
     time.sleep(3)
     driver.switch_to.window(google_window)
     time.sleep(3)
