@@ -60,6 +60,15 @@ def add_tab(url: str) -> str:
     return driver.current_window_handle
 
 
+def add_tab_alt(driver_object, url="about:blank"):
+    # TODO - test this way to generate new Tabs
+    wnd = driver.execute(webdriver.common.action_chains.Command.NEW_WINDOW)
+    handle = wnd["value"]["handle"]
+    driver_object.switch_to.window(handle)
+    driver_object.get(url)     # changes the handle
+    return driver_object.current_window_handle
+
+
 def change_tab(window_id: str) -> str:
     driver.switch_to.window(window_id)  # An alternate
     return driver.current_window_handle
@@ -215,15 +224,6 @@ def click_key(element_type: str, element_name: str, key='enter', sleep=SLEEP, wi
     except Exception as ex:
         print("Element doesn't found")
         print(ex)
-
-
-def new_tab(driver_object, url="about:blank"):
-    # TODO - test this way to generate new Tabs
-    wnd = driver.execute(webdriver.common.action_chains.Command.NEW_WINDOW)
-    handle = wnd["value"]["handle"]
-    driver_object.switch_to.window(handle)
-    driver_object.get(url)     # changes the handle
-    return driver_object.current_window_handle
 
 
 if __name__ == '__main__':

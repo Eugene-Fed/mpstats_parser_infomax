@@ -31,7 +31,8 @@ HEADERS = ['Запрос', 'Частотность в мес.', 'Частотн�
            'Объем продаж категории, руб', 'Объем продаж по запросу, руб']
 
 
-def log_in(account: dict, login_data: dict, sleep=0, key='enter', button=None, element=None, window_id=None) -> None:
+def log_in(account: dict, login_data: dict, sleep=0, key='enter',
+           button=None, element=None, window_id=None, balbo=False) -> None:
     """
     Function to Log in
     :param window_id: Window object from Selenium
@@ -188,16 +189,17 @@ def update_keywords(settings, account, webdriver_dir='drivers/chromedriver.exe')
     bm.close_window(window_id)
 
 
-def update_categories(settings, account, window_id=None, webdriver_dir=None, mpstats=True) -> None:
-    if webdriver_dir:
+def get_category_name(settings, account, window_id=None, webdriver_dir=None, mpstats=True, sleep=0) -> str:
+    categories = {}                         # Collection of Category ID, Name and Volume
+    if webdriver_dir:                       # When we use in separately - create new window. Else - use window_id
         bm.DRIVER_PATH = webdriver_dir
         window_id = bm.open_window(settings['urls']['login'])  # Open auth window for `MP Stats`
 
-    # TODO - rewrite use `log_in()` function
-    if mpstats:                                 # Use standard login interface if using `MPStats.io`
+    # LOG IN block
+    if mpstats:                                 # Use standard login interface for using `MPStats.io`
         log_in(window_id=window_id, account=account, login_data=settings['login_data'])     # Enter login data
 
-    else:                                       # Use custom login interface if using `Skladchina`
+    else:                                       # Use custom login interface for using `Skladchina`
         input_elements = bm.find_elements(element_type='class', element_name='input-form', window_id=window_id)
         bm.set_text(element=input_elements[0], element_type=settings['login_data']['name_key'],
                     element_name=settings['login_data']['name_value'], data=account['login'])
@@ -209,12 +211,27 @@ def update_categories(settings, account, window_id=None, webdriver_dir=None, mps
     pattern = re.compile(r'\[.+\]$')  # RegEx pattern to create Category ID URL
     for idx in range(NUMBER_OF_CATEGORIES):
         repl = str(idx+1)                       # because we have not 0th category
-        category_id_url = pattern.sub(repl, settings['urls']['category_id'])
+        category_id_url = pattern.sub(repl, settings['urls']['category_id'])        # create url with category id
 
         # Open keyword stat page
         window_id = bm.open_window(category_id_url, sleep=1)
-        #
-        time.sleep(5)
+        # Search for block with Category name string
+        category_field = bm.find_elements(element_type=settings['category_name']['field_key'],
+                                         element_name=settings['category_name']['field_value'],
+                                         sleep=sleep, repeat=2, window_id=window_id)
+        if category_field:                      # If category exists, search included text element
+            category_path = bm.find_elements(element_type=settings['category_name']['category_key'],
+                                             element_name=settings['category_name']['category_value'],
+                                             sleep=0, repeat=0, element=category_field[0])
+
+            category_path = re.sub(r"\s", "", category_path[1].text)         # delete spaces around slash character
+            categories[idx] = [category_path]
+            print(f'Category index: {idx+1}\nPath 2: `{category_path}`')
+
+            # Open category stat page
+
+
+        time.sleep(sleep)
     bm.close_window(window_id)
 
 
@@ -229,7 +246,7 @@ if __name__ == '__main__':
                         account=api_keys['bablo_btn']['accounts'][0],
                         webdriver_dir=settings['webdriver_dir'])
     if CATEGORY_STAT:
-        update_categories(settings=settings['mpstats'][1],
+        get_category_name(settings=settings['mpstats'][1],
                           account=api_keys['mp_stats']['accounts'][1],
                           webdriver_dir=settings['webdriver_dir'],
-                          mpstats=True)
+                          mpstats=True, sleep=3)

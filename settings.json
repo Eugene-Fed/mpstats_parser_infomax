@@ -34,6 +34,12 @@
                 "name_value": "email",
                 "pass_key": "name",
                 "pass_value": "password"
+            },
+            "category_name": {
+                "field_key": "class",
+                "field_value": "justify-content-start",
+                "category_key": "class",
+                "category_value": "ml-1"
             }
         }
     ],
