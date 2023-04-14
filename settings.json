@@ -18,6 +18,12 @@
                 "pass_value": "input",
                 "button_key": "tag",
                 "button_value": "input"
+            },
+            "category_name": {
+                "field_key": "class",
+                "field_value": "justify-content-start",
+                "category_key": "class",
+                "category_value": "ml-1"
             }
         },
         {
@@ -45,9 +51,10 @@
     ],
     "bablo_button": [
         {
-            "ulrs": {},
-            "login": "https://www.knopka-bablo.online/login",
-            "keywords": "https://www.knopka-bablo.online/current-bets",
+            "urls": {
+                "login": "https://www.knopka-bablo.online/login",
+                "keywords": "https://www.knopka-bablo.online/current-bets"
+            },
             "login_data": {
                 "name_key": "name",
                 "name_value": "phoneNumber",
