@@ -54,8 +54,8 @@ def open_window(url: str, sleep=SLEEP) -> str:
 
 def add_tab(url: str) -> str:
     driver.execute_script(f"window.open('{url}');")         # TODO: try to use standard Selenium tab interface
-    driver.switch_to.new_window()
-    # driver.switch_to.window(driver.window_handles[-1])     # An alternate
+    # driver.switch_to.new_window()                         # Create new tab
+    driver.switch_to.window(driver.window_handles[-1])     # An alternate
 
     return driver.current_window_handle
 

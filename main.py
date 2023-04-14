@@ -14,7 +14,7 @@ import re
 from tqdm import tqdm
 
 KEYWORD_COUNT_START = 952
-KEYWORD_COUNT_LIMIT = 2
+KEYWORD_COUNT_LIMIT = 3
 NUMBER_OF_CATEGORIES = 5                             # 8500
 KEYWORD_STAT = False                                    # Using to switch on/off updating of Keywords statistics
 CATEGORY_STAT = True                                    # Using to switch on/off updating of Categories statistics
@@ -32,7 +32,7 @@ HEADERS = ['Запрос', 'Частотность в мес.', 'Частотн�
 
 
 def log_in(account: dict, login_data: dict, sleep=0, key='enter',
-           button=None, element=None, window_id=None, balbo=False) -> None:
+           button=None, element=None, window_id=None) -> None:
     """
     Function to Log in
     :param window_id: Window object from Selenium
@@ -118,7 +118,10 @@ def get_keyword_stat(window_id: str, element_type: str, element_name: str, keywo
     return {'bids': bids, 'categories': categories}
 
 
-def update_keywords(settings, account, webdriver_dir='drivers/chromedriver.exe') -> None:
+def update_keywords(settings, account, webdriver_dir=None, window_id=None, log_it_in=True) -> None:
+
+    if window_id:       # if we created new tab before then change it
+        bm.change_tab(window_id)
     # keywords_week = {}
     # Создаем словарь всех значений для недельной частотности ключей
     with open(KEYWORDS_WEEK_PATH, 'r', newline='', encoding='utf-8') as f:
@@ -126,12 +129,13 @@ def update_keywords(settings, account, webdriver_dir='drivers/chromedriver.exe')
         keywords_week = {key: f'{int(value):,}'.replace(',', ' ') for key, value in wb_stat_reader}
 
     # Load settings to variables
-    bm.DRIVER_PATH = webdriver_dir
-    # account = api_keys['bablo_btn']['accounts'][0]  # login data for `bablo button`
+    if webdriver_dir:
+        bm.DRIVER_PATH = webdriver_dir
 
-    # Start to use browser
-    window_id = bm.open_window(settings['login'])  # open window with `bablo button`
-    log_in(window_id=window_id, account=account, login_data=settings['login_data'])  # log in at `Bablo Button`
+    # TODO: Rewrite to log in before using `update_keywords` fucntion instead of setting `log_in` flag
+    if log_it_in:
+        window_id = bm.open_window(settings['login'])  # open window with `bablo button`
+        log_in(window_id=window_id, account=account, login_data=settings['login_data'])  # log in at `Bablo Button`
 
     # Open keyword stat page
     bm.open_window(settings['keywords'], sleep=1)
@@ -167,14 +171,6 @@ def update_keywords(settings, account, webdriver_dir='drivers/chromedriver.exe')
                             output_stats.extend(bids)
                             output_stats.append(sales_volume)
                             output_stat_writer.writerow(output_stats)
-                            # output_stat_writer.writerow([keyword, frequency, '', '', '',
-                            #                              stat['categories'][0],
-                            #                              stat['bids'][0][1],
-                            #                              stat['bids'][1][1],
-                            #                              stat['bids'][2][1],
-                            #                              stat['bids'][3][1],
-                            #                              stat['bids'][4][1],
-                            #                              ''])
                         else:
                             # Если категория не обнаружена, значит в `Кнопке Бабло отсутствуют данные`
                             output_stat_writer.writerow([keyword, month_frequency, week_frequency])
@@ -185,54 +181,79 @@ def update_keywords(settings, account, webdriver_dir='drivers/chromedriver.exe')
 
             log.write(f'\nEND at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
 
-    time.sleep(1)
-    bm.close_window(window_id)
+    # time.sleep(1)
+    # bm.close_window(window_id)
 
 
-def get_category_name(settings, account, window_id=None, webdriver_dir=None, mpstats=True, sleep=0) -> str:
-    categories = {}                         # Collection of Category ID, Name and Volume
-    if webdriver_dir:                       # When we use in separately - create new window. Else - use window_id
-        bm.DRIVER_PATH = webdriver_dir
-        window_id = bm.open_window(settings['urls']['login'])  # Open auth window for `MP Stats`
+def get_category_name(idx: int, settings=None, account=None,
+                      window_id=None, webdriver_dir=None, mpstats=True, log_it_in=True, sleep=0) -> str:
+    """
+
+    :param settings:
+    :param account:
+    :param idx:
+    :param window_id: Browser tab ID. If set it than `webdriver_dir` not needed
+    :param webdriver_dir:
+    :param mpstats: Toggle the login url and page parameters
+    :param sleep:
+    :return: Name of searching category
+    """
+    categories = {}  # Collection of Category ID, Name and Volume
+
+    if window_id:       # if we created new tab before use `get_category_name` then change it
+        # bm.change_tab(window_id)
+        pass
+    else:
+        if webdriver_dir:                       # When we use in separately - create new window. Else - use window_id
+            bm.DRIVER_PATH = webdriver_dir
+            window_id = bm.open_window('')
+        else:
+            print('`window_id` and `webdriver_dir` not set')
+            return
 
     # LOG IN block
-    if mpstats:                                 # Use standard login interface for using `MPStats.io`
-        log_in(window_id=window_id, account=account, login_data=settings['login_data'])     # Enter login data
+    # TODO: rewrite to log in outside of this function
+    if log_it_in:
+        if mpstats:                                 # Use standard login interface for using `MPStats.io`
+            bm.open_window(settings['urls']['login'])  # Open auth window for `MP Stats`
+            log_in(window_id=window_id, account=account, login_data=settings['login_data'])     # Enter login data
 
-    else:                                       # Use custom login interface for using `Skladchina`
-        input_elements = bm.find_elements(element_type='class', element_name='input-form', window_id=window_id)
-        bm.set_text(element=input_elements[0], element_type=settings['login_data']['name_key'],
-                    element_name=settings['login_data']['name_value'], data=account['login'])
-        bm.set_text(element=input_elements[1], element_type=settings['login_data']['pass_key'],
-                    element_name=settings['login_data']['pass_value'], data=account['pass'])
-        bm.click_element(element=input_elements[2], element_type=settings['login_data']['button_key'],
-                         element_name=settings['login_data']['button_value'])
+        else:                                       # Use custom login interface for using `Skladchina`
+            # TODO: rewrite `log_in` function to be more flexible
+            # class_name_block = bm.find_elements(element_type='class', element_name='input-form', window_id=window_id)
+            # if class_name_block:
+            #     log_in(element=class_name_block, account=account, login_data=settings['login_data'])# Enter login data
+            input_elements = bm.find_elements(element_type='class', element_name='input-form', window_id=window_id)
+            bm.set_text(element=input_elements[0], element_type=settings['login_data']['name_key'],
+                        element_name=settings['login_data']['name_value'], data=account['login'])
+            bm.set_text(element=input_elements[1], element_type=settings['login_data']['pass_key'],
+                        element_name=settings['login_data']['pass_value'], data=account['pass'])
+            bm.click_element(element=input_elements[2], element_type=settings['login_data']['button_key'],
+                             element_name=settings['login_data']['button_value'])
 
     pattern = re.compile(r'\[.+\]$')  # RegEx pattern to create Category ID URL
-    for idx in range(NUMBER_OF_CATEGORIES):
-        repl = str(idx+1)                       # because we have not 0th category
-        category_id_url = pattern.sub(repl, settings['urls']['category_id'])        # create url with category id
+    # for idx in range(NUMBER_OF_CATEGORIES):
+    #   repl = str(idx+1)                       # because we have not 0th category
+    category_id_url = pattern.sub(str(idx), settings['urls']['category_id'])        # create url with category id
 
-        # Open keyword stat page
-        window_id = bm.open_window(category_id_url, sleep=1)
-        # Search for block with Category name string
-        category_field = bm.find_elements(element_type=settings['category_name']['field_key'],
-                                         element_name=settings['category_name']['field_value'],
-                                         sleep=sleep, repeat=2, window_id=window_id)
-        if category_field:                      # If category exists, search included text element
-            category_path = bm.find_elements(element_type=settings['category_name']['category_key'],
-                                             element_name=settings['category_name']['category_value'],
-                                             sleep=0, repeat=0, element=category_field[0])
+    # Open keyword stat page
+    window_id = bm.open_window(category_id_url, sleep=1)
+    # Search for block with Category name string
+    category_field = bm.find_elements(element_type=settings['category_name']['field_key'],
+                                     element_name=settings['category_name']['field_value'],
+                                     sleep=sleep, repeat=2, window_id=window_id)    # class: 'justify-content-start'
+    if category_field:                      # If category exists, search included text element
+        category_path = bm.find_elements(element_type=settings['category_name']['category_key'],
+                                         element_name=settings['category_name']['category_value'],
+                                         sleep=0, repeat=0, element=category_field[0])  # class: 'ml-1'
 
-            category_path = re.sub(r"\s", "", category_path[1].text)         # delete spaces around slash character
-            categories[idx] = [category_path]
-            print(f'Category index: {idx+1}\nPath 2: `{category_path}`')
+        category_path = re.sub(r"\s", "", category_path[1].text)         # delete spaces around slash character
+        categories[idx] = [category_path]
+        print(f'Category index: {idx+1}\nPath 2: `{category_path}`')
+        return category_path
 
-            # Open category stat page
-
-
-        time.sleep(sleep)
-    bm.close_window(window_id)
+    #     time.sleep(sleep)
+    # bm.close_window(window_id)
 
 
 if __name__ == '__main__':
@@ -241,12 +262,28 @@ if __name__ == '__main__':
     settings = fm.load_json()  # Loading settings file
     api_keys_file = Path(settings['api-keys_dir']) / Path(settings['api-keys_file'])
     api_keys = fm.load_json(file=api_keys_file)
+
+    # Create Main browser window
+    bm.DRIVER_PATH = settings['webdriver_dir']
+    browser_main_window = bm.open_window('https://google.com')
+
     if KEYWORD_STAT:
-        update_keywords(settings=settings['bablo_button'][0],
-                        account=api_keys['bablo_btn']['accounts'][0],
-                        webdriver_dir=settings['webdriver_dir'])
+        bablo_btn_account_id = 0            # id of account in the settings
+        browser_keyword_tab = bm.add_tab('https://ya.ru')
+        update_keywords(settings=settings['bablo_button'][bablo_btn_account_id],
+                        account=api_keys['bablo_btn']['accounts'][bablo_btn_account_id],
+                        window_id=browser_keyword_tab)
     if CATEGORY_STAT:
-        get_category_name(settings=settings['mpstats'][1],
-                          account=api_keys['mp_stats']['accounts'][1],
-                          webdriver_dir=settings['webdriver_dir'],
-                          mpstats=True, sleep=3)
+        mp_stats_account_id = 1            # id of account in the settings
+        browser_category_name_tab = bm.add_tab('https://ya.ru')
+
+        bm.open_window(settings['mpstats'][mp_stats_account_id]['urls']['login'])  # Open auth window for `MP Stats`
+        log_in(window_id=browser_category_name_tab,
+               account=api_keys['mp_stats']['accounts'][mp_stats_account_id],
+               login_data=settings['mpstats'][mp_stats_account_id]['login_data'])  # Enter login data
+        for idx in range(1, 4):
+            print(get_category_name(idx=idx, settings=settings['mpstats'][mp_stats_account_id],
+                              window_id=browser_category_name_tab,
+                              mpstats=True, sleep=2, log_it_in=False))
+
+    bm.close_window(browser_main_window)            # stop browser
