@@ -15,20 +15,26 @@ from tqdm import tqdm
 
 KEYWORD_COUNT_START = 952
 KEYWORD_COUNT_LIMIT = 3
-NUMBER_OF_CATEGORIES = 5                             # 8500
+NUMBER_OF_CATEGORIES = 5                             # about 8500 items
 KEYWORD_STAT = False                                    # Using to switch on/off updating of Keywords statistics
 CATEGORY_STAT = True                                    # Using to switch on/off updating of Categories statistics
-KEYWORD_STATISTICS_WAIT = 3                             # Время в секундах на ожидание загрузки страницы
-REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Задаем позиции по которым будем собирать статистику (начиная с 1)
-KEYWORDS_MONTH_PATH = r"D:\Downloads\requests_month.csv"  # будет заменено на поиск реального расположения папки
-KEYWORDS_WEEK_PATH = r"D:\Downloads\requests_week.csv"  # будет заменено на поиск реального расположения папки
+KEYWORD_STATISTICS_WAIT = 3                             # Time in seconds to wait for the page to load
+REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Set the positions for which we will collect statistics (from 1st)
+# TODO - Rewrite to search for system `Downloads` directory
+KEYWORDS_MONTH_PATH = r"D:\Downloads\requests_month.csv"    # Monthly statistics download file from Wildberries
+KEYWORDS_WEEK_PATH = r"D:\Downloads\requests_week.csv"      # Weekly statistics download file from Wildberries
+CATEGORY_VALUE_PATH = r"D:\Downloads\category_volume.csv"   # Revenue file by category
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
 OUTPUT_STAT = f'D:\\Downloads\\stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
 LOG_FILE = r'log.txt'
+CATEGORY_ID_PATTERN = r'\[.+\]$'                        # RegEx pattern to create Category ID URL
 
-HEADERS = ['Запрос', 'Частотность в мес.', 'Частотность в нед.', 'Изменение мес/мес, %', 'Изменение нед/нед, %',
-           'Приоритетная категория', '1 место', '2 место', '3 место', '4 место', '5 место',
-           'Объем продаж категории, руб', 'Объем продаж по запросу, руб']
+
+STAT_FILE_HEADERS = ['Запрос', 'Частотность в мес.', 'Частотность в нед.', 'Изменение мес/мес, %',
+                     'Изменение нед/нед, %', 'Приоритетная категория',
+                     '1 место', '2 место', '3 место', '4 место', '5 место',
+                     'Объем продаж категории, руб', 'Объем продаж по запросу, руб']
+CATEGORY_FILE_HEADERS = ['ID', 'Название', 'Объем продаж']
 
 
 def log_in(account: dict, login_data: dict, sleep=0, key='enter',
@@ -159,7 +165,7 @@ def update_keywords(settings, account, webdriver_dir=None, window_id=None, log_i
 
             with open(OUTPUT_STAT, 'w', newline='', encoding='utf-8', buffering=1) as stat:  # output statistic file
                 output_stat_writer = csv.writer(stat, dialect='excel')
-                output_stat_writer.writerow(HEADERS)
+                output_stat_writer.writerow(STAT_FILE_HEADERS)
 
                 for raw in wb_stat_reader:
                     if not raw:
@@ -211,17 +217,16 @@ def get_category_name(idx: int, settings=None, account=None,
     categories = {}  # Collection of Category ID, Name and Volume
 
     if window_id:       # if we created new tab before use `get_category_name` then change it
-        # bm.change_tab(window_id)
-        pass
+        bm.change_tab(window_id)
     else:
         if webdriver_dir:                       # When we use in separately - create new window. Else - use window_id
             bm.DRIVER_PATH = webdriver_dir
-            window_id = bm.open_window('')
+            # window_id = bm.open_window('')    # We doesn't use this `window_id`
         else:
             print('`window_id` and `webdriver_dir` not set')
             return
 
-    pattern = re.compile(r'\[.+\]$')  # RegEx pattern to create Category ID URL
+    pattern = re.compile(CATEGORY_ID_PATTERN)  # RegEx pattern to create Category ID URL
     # for idx in range(NUMBER_OF_CATEGORIES):
     #   repl = str(idx+1)                       # because we have not 0th category
     category_id_url = pattern.sub(str(idx), settings['urls']['category_id'])        # create url with category id
@@ -241,6 +246,9 @@ def get_category_name(idx: int, settings=None, account=None,
         categories[idx] = [category_path]
         print(f'Category index: {idx+1}\nPath 2: `{category_path}`')
         return category_path
+    else:
+        print(f'Category {idx} not found')
+        return
 
     #     time.sleep(sleep)
     # bm.close_window(window_id)
@@ -253,13 +261,30 @@ if __name__ == '__main__':
     api_keys_file = Path(settings['api-keys_dir']) / Path(settings['api-keys_file'])
     api_keys = fm.load_json(file=api_keys_file)
 
+    # Open/Create category ID, Name, Volume matching file and load category volume dict
+    try:
+        with open(CATEGORY_VALUE_PATH, 'r', newline='', encoding='utf-8') as f:
+            category_volume_reader = csv.reader(f, delimiter=',')
+            category_volume =\
+                {cat_id: [name, volume] for cat_id, name, volume in category_volume_reader}
+
+    except FileNotFoundError as ex:
+        print(ex)
+        with open(CATEGORY_VALUE_PATH, 'w', newline='', encoding='utf-8') as f:
+            category_volume_writer = csv.writer(f, dialect='excel')
+            category_volume_writer.writerow(CATEGORY_FILE_HEADERS)
+        category_volume = {}                    # to collect Category id with Name and Volume
+
+    except Exception as ex:
+        print(ex)
+
+
     # Create Main browser window
     bm.DRIVER_PATH = settings['webdriver_dir']
     browser_main_window = bm.open_window('https://google.com')
     bablo_btn_account_id = 0                    # id of account in the settings
     mp_stats_account_id = 1                     # id of account in the settings
 
-    # if KEYWORD_STAT:
     # Open and login to `Bablo Button` account
     browser_keyword_tab = bm.add_tab('')
     bm.open_window(settings['bablo_button'][bablo_btn_account_id]['urls']['login'])  # Open auth window for `MP Stats`
@@ -271,7 +296,6 @@ if __name__ == '__main__':
     #                 account=api_keys['bablo_btn']['accounts'][bablo_btn_account_id],
     #                 window_id=browser_keyword_tab)
 
-    # if CATEGORY_STAT:
     # Open and login `MP Stats` account
     browser_category_name_tab = bm.add_tab('')
     bm.open_window(settings['mpstats'][mp_stats_account_id]['urls']['login'])  # Open auth window for `MP Stats`
@@ -279,10 +303,20 @@ if __name__ == '__main__':
            account=api_keys['mp_stats']['accounts'][mp_stats_account_id],
            login_data=settings['mpstats'][mp_stats_account_id]['login_data'],
            submit_button=False)  # Enter login data
+    browser_category_volume_tab = bm.add_tab('')
 
-    for idx in range(1, 4):
-        print(get_category_name(idx=idx, settings=settings['mpstats'][mp_stats_account_id],
-                          window_id=browser_category_name_tab, sleep=2))
+    # for idx in range(1, 4):
+    #     print(get_category_name(idx=idx, settings=settings['mpstats'][mp_stats_account_id],
+    #                       window_id=browser_category_name_tab, sleep=2))
+    # Create list of keywords with month statistic
+    with open(KEYWORDS_MONTH_PATH, 'r', newline='', encoding='utf-8') as f:
+        wb_stat_reader = csv.reader(f, delimiter=',')
+        keywords_week = [(key, int(f'{value:,}'.replace(',', ' '))) for key, value in wb_stat_reader]
 
-    time.sleep(10)
+    # Create dict of keywords with week statistic
+    with open(KEYWORDS_WEEK_PATH, 'r', newline='', encoding='utf-8') as f:
+        wb_stat_reader = csv.reader(f, delimiter=',')
+        keywords_week = {key: f'{int(value):,}'.replace(',', ' ') for key, value in wb_stat_reader}
+
+    time.sleep(5)
     bm.close_window(browser_main_window)            # stop browser
