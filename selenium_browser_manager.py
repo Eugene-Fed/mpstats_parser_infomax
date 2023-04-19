@@ -14,7 +14,7 @@ CHROME_PROFILE_PATH = r'C:\Users\eugen\AppData\Local\Google\Chrome\User Data'   
 WB_URL = r'https://seller.wildberries.ru/'
 # TIMEOUT = 15                          # Time to waiting of page load. But doesn't work
 SLEEP = 2
-REPEAT = 3
+REPEAT = 0
 
 
 # Настройте параметры профиля для сохранения данных в нем

@@ -7,14 +7,16 @@ import sys
 import file_manager as fm  # Управление файлами настроек, паролей и т.п.
 import selenium_browser_manager as bm  # Управление браузером
 from selenium.webdriver.common.by import By
+from itertools import product
 from pathlib import Path
 import time
 from datetime import datetime
 import re
 from tqdm import tqdm
 
-KEYWORD_COUNT_START = 952
-KEYWORD_COUNT_LIMIT = 2000
+# KEYWORD_COUNT_START = 952
+KEYWORD_FREQ_LIMIT = 20000
+KEYWORD_COUNT_LIMIT = 20000
 KEYWORD_STATISTICS_WAIT = 3                          # Время в секундах на ожидание загрузки страницы
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Задаем позиции по которым будем собирать статистику (начиная с 1)
 KEYWORDS_MONTH_PATH = r"D:\Downloads\requests_month.csv"  # будет заменено на поиск реального расположения папки
@@ -97,7 +99,7 @@ def get_keyword_stat(window_id: str, element_type: str, element_name: str, keywo
 
     categories = []
     bids = []
-    time.sleep(sleep)
+    time.sleep(10)
     cat_div = bm.find_elements(element_type=settings['prior_cat']['element_type'],
                                element_name=settings['prior_cat']['element_name'])  # get `Prior categories` element
     if cat_div:
@@ -119,7 +121,7 @@ if __name__ == '__main__':
     # Создаем словарь всех значений для недельной частотности ключей
     with open(KEYWORDS_WEEK_PATH, 'r', newline='', encoding='utf-8') as f:
         wb_stat_reader = csv.reader(f, delimiter=',')
-        keywords_week = {key: f'{int(value):,}'.replace(',', ' ') for key, value in wb_stat_reader}
+        keywords_week = {key: f'{int(value):,}'.replace(',', '') for key, value in wb_stat_reader}
 
     # Load settings to variables
     bm.DRIVER_PATH = settings['webdriver_dir']
@@ -152,8 +154,14 @@ if __name__ == '__main__':
                                                 settings=settings['bablo_url']['keywords_stat'],
                                                 sleep=KEYWORD_STATISTICS_WAIT)
                         # with open(LOG_FILE, 'a', encoding='utf-8') as log:
-                        keyword, month_frequency = raw[0], f'{int(raw[1]):,}'.replace(',', ' ')
-                        week_frequency = keywords_week.pop(keyword, '')     # получаем значение недельной частотности
+                        keyword, month_frequency = raw[0], f'{int(raw[1]):,}'.replace(',', '')
+
+                        if int(month_frequency) < KEYWORD_FREQ_LIMIT:
+                            print(f'{KEYWORD_FREQ_LIMIT} LIMIT IS DONE!!!')
+                            break
+
+                        # получаем значение недельной частотности
+                        week_frequency = keywords_week.pop(keyword, '')
                         # log.write(f'\n"{keyword}" - {month_frequency}\n{stat}')
 
                         # Если нашли элемент со статистикой категории, тогда сохраняем все прочие данные в таблицу
