@@ -14,17 +14,19 @@ import re
 from tqdm import tqdm
 
 KEYWORD_COUNT_START = 0
-KEYWORD_COUNT_LIMIT = 20000
+KEYWORD_COUNT_LIMIT = 15
 NUMBER_OF_CATEGORIES = 5                             # about 8500 items
 KEYWORD_FREQ_LIMIT = 19999                              # Minimum keyword Frequency to parse statistics
 KEYWORD_STATISTICS_WAIT = 3                             # Time in seconds to wait for the page to load
+KEYWORD_STATISTICS_TRIES = 7
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Set the positions for which we will collect statistics (from 1st)
 # TODO - Rewrite to search for system `Downloads` directory
 KEYWORDS_MONTH_PATH = r"D:\Downloads\requests_month.csv"    # Monthly statistics download file from Wildberries
 KEYWORDS_WEEK_PATH = r"D:\Downloads\requests_week.csv"      # Weekly statistics download file from Wildberries
 CATEGORY_VALUE_PATH = r"D:\Downloads\category_volume.csv"   # Revenue file by category
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
-OUTPUT_STAT = f'D:\\Downloads\\stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
+# OUTPUT_STAT = f'D:\\Downloads\\stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
+OUTPUT_STAT = f'D:\\Downloads\\stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_[].csv'
 LOG_FILE = r'log.txt'
 CATEGORY_ID_PATTERN = r'\[.+\]$'                        # RegEx pattern to create Category ID URL
 DATETIME_FORMAT = r'%Y-%m-%d %H:%M:%S'
@@ -105,7 +107,8 @@ def parse_stat_table(window_id: str, element_type: str, element_name: str, sleep
     return bids
 
 
-def get_keyword_stat(window_id: str, element_type: str, element_name: str, keyword: str, settings: dict, sleep=0):
+def get_keyword_stat(window_id: str, element_type: str, element_name: str, keyword: str,
+                     settings: dict, sleep=0, retry=2) -> dict:
     """
     Parse table with keywords statistic.
     We don't need to wait for the page to load as the webdriver settings have a default time for element search.
@@ -115,28 +118,61 @@ def get_keyword_stat(window_id: str, element_type: str, element_name: str, keywo
     :param element_name:
     :param keyword: Searching keyword
     :param sleep: The waiting time for human-like interaction with an interface
+    :param retry: Number of reloads keyword statistic page before failed
     :return:
     """
-    time.sleep(sleep)
-    bm.set_text(element_type, element_name, keyword, sleep=sleep, window_id=window_id)       # input key at text field
+    # time.sleep(sleep)
+    # input key at text field
+    bm.set_text(element_type, element_name, keyword.strip(), sleep=sleep, window_id=window_id)
     bm.click_key(element_type, element_name, key='enter', window_id=window_id)      # press ENTER on keyboard
     print(f'Keyword: "{keyword}"')
 
     categories = []
     bids = []
-    time.sleep(sleep)
-    cat_div = bm.find_elements(element_type=settings['prior_cat']['element_type'],
-                               element_name=settings['prior_cat']['element_name'])  # get `Prior categories` element
-    if cat_div:
-        categories = cat_div[0].text.split('\n')            # if `Prior categories` element not empty get categories
-        bids = parse_stat_table(window_id=window_id,
-                                element_type=settings['bids_table']['element_type'],
-                                element_name=settings['bids_table']['element_name'])  # get Bids REQUIRED_PLACE_INDEXES
+    for idx in range(KEYWORD_STATISTICS_TRIES):
+        time.sleep(sleep)
+        # check for statistic exists
+        stat_exists = bm.find_elements(element_type=settings['keyword']['element_type'],
+                                       element_name=settings['keyword']['element_name'],
+                                       repeat=0)
+        stat_not_exists = bm.find_elements(element_type=settings['last_requests']['element_type'],
+                                       element_name=settings['last_requests']['element_name'],
+                                       repeat=0)
+        if stat_exists and stat_exists[0].text == keyword:
+            # get `Prior categories` element
+            cat_div = bm.find_elements(element_type=settings['prior_cat']['element_type'],
+                                       element_name=settings['prior_cat']['element_name'])
+            if cat_div:
+                categories = cat_div[0].text.split('\n')        # if `Prior categories` element not empty get categories
+                bids = parse_stat_table(window_id=window_id,
+                                        element_type=settings['bids_table']['element_type'],
+                                        element_name=settings['bids_table']['element_name'])  # get Bids
+                break
+        elif stat_not_exists:
+            print(f'Wildberries returned empty data for keyword {keyword}')
+            retry = 0
+            break
+
+    if not bids and retry:        # if `bids` is empty and `retry` != 0
+        retry -= 1
+        bm.reload_page(window_id)
+        time.sleep(sleep)
+        get_keyword_stat(window_id=window_id, element_type=element_type, element_name=element_name,
+                         keyword=keyword, settings=settings, sleep=sleep, retry=retry)
+
     return {'bids': bids, 'categories': categories}
 
 
 def update_keywords(settings, account, webdriver_dir=None, window_id=None, log_it_in=True) -> None:
-
+    """
+    DEPRECATED
+    :param settings:
+    :param account:
+    :param webdriver_dir:
+    :param window_id:
+    :param log_it_in:
+    :return:
+    """
     if window_id:       # if we created new tab before then change it
         bm.change_tab(window_id)
     # keywords_week = {}
@@ -256,6 +292,7 @@ def get_category_name(idx: int, settings=None, account=None,
 
 if __name__ == '__main__':
 
+    # Open/Create `log.txt` file
     start_datetime = datetime.now()
     try:
         log = open(LOG_FILE, 'a', encoding='utf-8')  # Append date into exists `log` file
@@ -291,7 +328,7 @@ if __name__ == '__main__':
             category_volume =\
                 {cat_id: [name, volume] for cat_id, name, volume in category_volume_reader}
 
-    except FileNotFoundError as ex:
+    except FileNotFoundError or FileExistsError as ex:
         print(ex)
         with open(CATEGORY_VALUE_PATH, 'w', newline='', encoding='utf-8') as f:
             category_volume_writer = csv.writer(f, dialect='excel')
@@ -301,7 +338,8 @@ if __name__ == '__main__':
     except Exception as ex:
         print(ex)
 
-    # Create list of keywords with month statistic
+    # TODO - add `try/except` and script to download files from `Wildberries`
+    # Create list of keywords month statistic with required frequency
     with open(KEYWORDS_MONTH_PATH, 'r', newline='', encoding='utf-8') as f:
         wb_stat_reader = csv.reader(f, delimiter=',')
         month_keywords = [(key, int(value)) for key, value in wb_stat_reader if int(value) > KEYWORD_FREQ_LIMIT]
@@ -311,6 +349,11 @@ if __name__ == '__main__':
         wb_stat_reader = csv.reader(f, delimiter=',')
         week_keywords = {key: int(value) for key, value in wb_stat_reader}
 
+    # Create output data file with Headers
+    output_stat_name = OUTPUT_STAT.replace('[]', str(len(month_keywords)))
+    output_file = open(output_stat_name, 'w', newline='', encoding='utf-8', buffering=1)  # output statistic file
+    output_stat_writer = csv.writer(output_file, dialect='excel')
+    output_stat_writer.writerow(STAT_FILE_HEADERS)
 
     # Create Main browser window
     bm.DRIVER_PATH = settings['webdriver_dir']
@@ -319,29 +362,53 @@ if __name__ == '__main__':
     # Open and login to `Bablo Button` account
     tab_ids['bablo_btn_0'] = bm.add_tab('')
     bm.open_window(settings['bablo_button'][bablo_btn_account_id]['urls']['login'])  # Open auth window for `MP Stats`
-    auth_to['bablo_btn'](window_id=tab_ids['bablo_btn_0'])                   # Auth call
+    auth_to['bablo_btn'](window_id=tab_ids['bablo_btn_0'])                   # call of `bablo_btn` Auth object
+
+    # Go to keywords stat page
     bm.open_window(settings['bablo_button'][bablo_btn_account_id]['urls']['keywords'])
 
     # Open and login `MP Stats` account
-    tab_ids['mp_stats_cat_id'] = bm.add_tab('')
-    bm.open_window(settings['mpstats'][mp_stats_account_id]['urls']['login'])  # Open auth window for `MP Stats`
-    auth_to['mp_stats'](window_id=tab_ids['mp_stats_cat_id'])
-    tab_ids['mp_stats_cat_volume'] = bm.add_tab('')
+    # tab_ids['mp_stats_cat_id'] = bm.add_tab('')
+    # bm.open_window(settings['mpstats'][mp_stats_account_id]['urls']['login'])  # Open auth window for `MP Stats`
+    # auth_to['mp_stats'](window_id=tab_ids['mp_stats_cat_id'])                   # call of `mp_stats` Auth object
+    # TODO get category path by id to create category volume url
+    # tab_ids['mp_stats_cat_volume'] = bm.add_tab(settings['mpstats'][mp_stats_account_id]['urls']['category_volume'])
 
-    print(len(month_keywords))
-    print(len(week_keywords))
-    for keyword_freq in month_keywords:
-        pass
+    for idx, keyword in enumerate(month_keywords[KEYWORD_COUNT_START:KEYWORD_COUNT_LIMIT]):
+        bm.change_tab(tab_ids['bablo_btn_0'])
+        print(f'{idx + 1} / {KEYWORD_COUNT_LIMIT}')
+
         # update_keywords(settings=settings['bablo_button'][bablo_btn_account_id],
         #                 account=api_keys['bablo_btn']['accounts'][bablo_btn_account_id],
         #                 window_id=browser_keyword_tab)
+
+        stat = get_keyword_stat(tab_ids['bablo_btn_0'], 'name', 'value', keyword=keyword[0],
+                                settings=settings['bablo_button'][bablo_btn_account_id]['keywords_stat'],
+                                sleep=KEYWORD_STATISTICS_WAIT)
+
+        keyword, month_frequency = keyword[0], keyword[1]
+        week_frequency = week_keywords.pop(keyword, '')  # получаем значение недельной частотности
+
+        # Если нашли элемент со статистикой категории, тогда сохраняем все прочие данные в таблицу
+        if stat['categories']:
+            bids = [x[1] for x in stat['bids']]  # Required bids
+            sales_volume = ''  # Volume of sales
+            output_stats = [keyword, month_frequency, week_frequency, '', '', stat['categories'][0]]
+            output_stats.extend(bids)
+            output_stats.append(sales_volume)
+            output_stat_writer.writerow(output_stats)
+        else:
+            # Если категория не обнаружена, значит в `Кнопке Бабло отсутствуют данные`
+            output_stat_writer.writerow([keyword, month_frequency, week_frequency])
+        print(stat)
 
     # for idx in range(1, 4):
     #     print(get_category_name(idx=idx, settings=settings['mpstats'][mp_stats_account_id],
     #                       window_id=browser_category_name_tab, sleep=2))
 
     time.sleep(5)
-    bm.close_window(tab_ids['main'])            # stop browser
+    bm.close_window(tab_ids['main'])            # Stop browser
+    output_file.close()                         # Close output file
 
     finish_datetime = datetime.now()
     work_time = finish_datetime - start_datetime

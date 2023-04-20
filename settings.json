@@ -65,7 +65,16 @@
             "keywords_stat": {
                 "prior_cat": {
                     "element_type": "class",
-                    "element_name": "sc-fVuoVZ"
+                    "element_name": "sc-hFRZIz"
+                },
+                "keyword": {
+                    "element_type": "class",
+                    "element_name": "sc-jFyCeV"
+                },
+                "last_requests": {
+                    "element_type": "class",
+                    "element_name": "sc-behMKO",
+                    "element_value": "Последние 5 запросов"
                 },
                 "bids_table": {
                     "element_type": "class",

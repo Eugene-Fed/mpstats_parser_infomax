@@ -14,7 +14,7 @@ CHROME_PROFILE_PATH = r'C:\Users\eugen\AppData\Local\Google\Chrome\User Data'   
 WB_URL = r'https://seller.wildberries.ru/'
 # TIMEOUT = 15                          # Time to waiting of page load. But doesn't work
 SLEEP = 2
-REPEAT = 3
+REPEAT = 0
 
 
 # Настройте параметры профиля для сохранения данных в нем
@@ -197,7 +197,7 @@ def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPE
     :param element_type: Type of element for search
     :param element_name: Element name value
     :param sleep: Time to wait in seconds
-    :param repeat: Try to reload page to find element
+    :param repeat: DEPRECATED - Try to reload page to find element
     :param element: Web element to search any other elements in it
     :return: Found element
     """
@@ -234,7 +234,7 @@ def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPE
                                  element_name=element_name,
                                  repeat=repeat-1)
         else:
-            print(f"Element '{element_type}' -> '{element_name}' doesn't found")
+            print(f"Element '{element_type}' -> '{element_name}' not found")
             # elements_input = []
             # raise Exception         # TODO - change to validate exception type
     return elements_input
