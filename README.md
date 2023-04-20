@@ -4,7 +4,10 @@
 ### TODO list
 - [x] Use DOM Ready waiting instead of `time.sleep`. **DOESN'T WORK**
 - [x] If exception "Out of range", than reload page
-- [ ] Add Comparative Frequency Data to Keyword Table
+- [x] Use `closure` or `class` **Authontefication** to create number of `log_in` functions for all needed accounts
+- [x] Add Comparative Frequency Data to Keyword Table
+- [ ] Create function to open Category Value page
+- [ ] Create module to load Categories Value from file
 - [ ] Use filled CPM values instead of `0` for the 1st, 2nd and 3rd places
 - [ ] Parse Catagory Value statistics from MPStats
 - [ ] Load all CPMs and sort them by value before assign it to bids table

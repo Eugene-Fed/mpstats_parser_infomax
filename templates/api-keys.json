@@ -18,8 +18,28 @@
     "mp_stats": {
         "accounts": [
             {
-                "login": "",
-                "pass": ""
+                "login": "text",
+                "pass": "text",
+                "url": "https://mpstats.io/login"
+            }
+        ]
+    },
+    "bablo_btn": {
+        "accounts": [
+            {
+                "login": "text",
+                "pass": "text",
+                "url": "https://www.knopka-bablo.online/login"
+            }
+        ]
+    },
+    "google_api": {
+        "accounts": [
+            {
+                "credentials_json": "file.json",
+                "client_id": "text",
+                "spredsheet_id": "text",
+                "table_url": "url"
             }
         ]
     }
