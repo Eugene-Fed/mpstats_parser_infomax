@@ -13,11 +13,10 @@ from datetime import datetime
 import re
 from tqdm import tqdm
 
-KEYWORD_COUNT_START = 952
-KEYWORD_COUNT_LIMIT = 3
+KEYWORD_COUNT_START = 0
+KEYWORD_COUNT_LIMIT = 20000
 NUMBER_OF_CATEGORIES = 5                             # about 8500 items
-KEYWORD_STAT = False                                    # Using to switch on/off updating of Keywords statistics
-CATEGORY_STAT = True                                    # Using to switch on/off updating of Categories statistics
+KEYWORD_FREQ_LIMIT = 19999                              # Minimum keyword Frequency to parse statistics
 KEYWORD_STATISTICS_WAIT = 3                             # Time in seconds to wait for the page to load
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Set the positions for which we will collect statistics (from 1st)
 # TODO - Rewrite to search for system `Downloads` directory
@@ -28,6 +27,7 @@ CATEGORY_VALUE_PATH = r"D:\Downloads\category_volume.csv"   # Revenue file by ca
 OUTPUT_STAT = f'D:\\Downloads\\stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
 LOG_FILE = r'log.txt'
 CATEGORY_ID_PATTERN = r'\[.+\]$'                        # RegEx pattern to create Category ID URL
+DATETIME_FORMAT = r'%Y-%m-%d %H:%M:%S'
 
 
 STAT_FILE_HEADERS = ['Запрос', 'Частотность в мес.', 'Частотность в нед.', 'Изменение мес/мес, %',
@@ -255,9 +255,23 @@ def get_category_name(idx: int, settings=None, account=None,
 
 
 if __name__ == '__main__':
+
+    start_datetime = datetime.now()
+    try:
+        log = open(LOG_FILE, 'a', encoding='utf-8')  # Append date into exists `log` file
+    except FileNotFoundError or FileExistsError as e:
+        print(e)
+        log = open(LOG_FILE, 'w', encoding='utf-8')  # Create `log` file
+    except Exception as e:
+        print(e)
+    finally:
+        log.write(f'START at: {start_datetime.strftime(DATETIME_FORMAT)}\n#########################')
+        log.close()
+
     # TODO - Rewrite to use `DOM Ready` factor instead of sleeping. FIX - it doesn't work!!! Use time.time.sleep()
     # Load files with settings
     auth_to = {}                # Collects authentication objects
+    tab_ids = {}              # Collects browser tab IDs
     settings = fm.load_json()  # Loading settings file
     api_keys_file = Path(settings['api-keys_dir']) / Path(settings['api-keys_file'])
     api_keys = fm.load_json(file=api_keys_file)
@@ -287,41 +301,59 @@ if __name__ == '__main__':
     except Exception as ex:
         print(ex)
 
-
-    # Create Main browser window
-    bm.DRIVER_PATH = settings['webdriver_dir']
-    browser_main_window = bm.open_window('https://google.com')
-
-    # Open and login to `Bablo Button` account
-    browser_keyword_tab = bm.add_tab('')
-    bm.open_window(settings['bablo_button'][bablo_btn_account_id]['urls']['login'])  # Open auth window for `MP Stats`
-    auth_to['bablo_btn'](window_id=browser_keyword_tab)                   # Auth call
-    bm.open_window(settings['bablo_button'][bablo_btn_account_id]['urls']['keywords'])
-
-    # update_keywords(settings=settings['bablo_button'][bablo_btn_account_id],
-    #                 account=api_keys['bablo_btn']['accounts'][bablo_btn_account_id],
-    #                 window_id=browser_keyword_tab)
-
-    # Open and login `MP Stats` account
-    browser_category_name_tab = bm.add_tab('')
-    bm.open_window(settings['mpstats'][mp_stats_account_id]['urls']['login'])  # Open auth window for `MP Stats`
-    auth_to['mp_stats'](window_id=browser_category_name_tab)
-    browser_category_volume_tab = bm.add_tab('')
-
-    # for idx in range(1, 4):
-    #     print(get_category_name(idx=idx, settings=settings['mpstats'][mp_stats_account_id],
-    #                       window_id=browser_category_name_tab, sleep=2))
     # Create list of keywords with month statistic
     with open(KEYWORDS_MONTH_PATH, 'r', newline='', encoding='utf-8') as f:
         wb_stat_reader = csv.reader(f, delimiter=',')
-        # keywords_week = [(key, int(f'{value:,}'.replace(',', ''))) for key, value in wb_stat_reader]
-        keywords_month = [(key, int(value)) for key, value in wb_stat_reader]
+        month_keywords = [(key, int(value)) for key, value in wb_stat_reader if int(value) > KEYWORD_FREQ_LIMIT]
 
     # Create dict of keywords with week statistic
     with open(KEYWORDS_WEEK_PATH, 'r', newline='', encoding='utf-8') as f:
         wb_stat_reader = csv.reader(f, delimiter=',')
-        # keywords_week = {key: f'{int(value):,}'.replace(',', '') for key, value in wb_stat_reader}
-        keywords_week = {key: int(value) for key, value in wb_stat_reader}
+        week_keywords = {key: int(value) for key, value in wb_stat_reader}
+
+
+    # Create Main browser window
+    bm.DRIVER_PATH = settings['webdriver_dir']
+    tab_ids['main'] = bm.open_window('https://google.com')
+
+    # Open and login to `Bablo Button` account
+    tab_ids['bablo_btn_0'] = bm.add_tab('')
+    bm.open_window(settings['bablo_button'][bablo_btn_account_id]['urls']['login'])  # Open auth window for `MP Stats`
+    auth_to['bablo_btn'](window_id=tab_ids['bablo_btn_0'])                   # Auth call
+    bm.open_window(settings['bablo_button'][bablo_btn_account_id]['urls']['keywords'])
+
+    # Open and login `MP Stats` account
+    tab_ids['mp_stats_cat_id'] = bm.add_tab('')
+    bm.open_window(settings['mpstats'][mp_stats_account_id]['urls']['login'])  # Open auth window for `MP Stats`
+    auth_to['mp_stats'](window_id=tab_ids['mp_stats_cat_id'])
+    tab_ids['mp_stats_cat_volume'] = bm.add_tab('')
+
+    print(len(month_keywords))
+    print(len(week_keywords))
+    for keyword_freq in month_keywords:
+        pass
+        # update_keywords(settings=settings['bablo_button'][bablo_btn_account_id],
+        #                 account=api_keys['bablo_btn']['accounts'][bablo_btn_account_id],
+        #                 window_id=browser_keyword_tab)
+
+    # for idx in range(1, 4):
+    #     print(get_category_name(idx=idx, settings=settings['mpstats'][mp_stats_account_id],
+    #                       window_id=browser_category_name_tab, sleep=2))
 
     time.sleep(5)
-    bm.close_window(browser_main_window)            # stop browser
+    bm.close_window(tab_ids['main'])            # stop browser
+
+    finish_datetime = datetime.now()
+    work_time = finish_datetime - start_datetime
+    try:
+        log = open(LOG_FILE, 'a', encoding='utf-8')  # Append date into exists `log` file
+    except FileNotFoundError or FileExistsError as e:
+        print(e)
+        log = open(LOG_FILE, 'w', encoding='utf-8')  # Create `log` file
+    except Exception as e:
+        print(e)
+    finally:
+        log.write(f'\nFINISH at: {finish_datetime.strftime(DATETIME_FORMAT)}'
+                  f'\nTotal time: {work_time}, Total keywords: {len(month_keywords)}'
+                  f'\n#########################\n')
+        log.close()

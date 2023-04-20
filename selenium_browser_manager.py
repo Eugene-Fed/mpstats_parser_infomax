@@ -137,6 +137,12 @@ class Auth:
             click_key(**submit_key)
 
 
+class BrowserTab:
+    # TODO - create a Class to create and manage browser tabs with on-demand authentication
+    def __init__(self):
+        pass
+
+
 def open_window(url: str, sleep=SLEEP) -> str:
     """
     Open browser window and return it'd ID
