@@ -36,6 +36,107 @@ driver = webdriver.Chrome(service=s, options=options)
 # driver.set_page_load_timeout(TIMEOUT)
 
 
+class Auth:
+    def __init__(self, account: dict, login_data: dict, key='enter', skladchina=False):
+        """
+        Account authentication
+        :param account: Collects types and values of DOM-elements
+        :param login_data: Collects account name and password
+        :param key: Set keyboard key to push
+        :param skladchina: Set external account method for authentication
+        """
+        self.account = account
+        self.login_data = login_data
+        self.key = key
+        self.skladchina = skladchina
+
+    def __call__(self, window_id=None, element=None, sleep=0, submit_button=False):
+        if self.skladchina:
+            input_elements = find_elements(element_type='class', element_name='input-form', window_id=window_id)
+            acc_name = {
+                'element': input_elements[0],
+                'element_type': self.settings['login_data']['name_key'],
+                'element_name': self.settings['login_data']['name_value'],
+                'data': self.account['login'],
+                'sleep': sleep,
+                'window_id': window_id
+            }
+            acc_pass = {
+                'element': input_elements[1],
+                'element_type': self.settings['login_data']['pass_key'],
+                'element_name': self.settings['login_data']['pass_value'],
+                'data': self.account['pass'],
+                'sleep': sleep,
+                'window_id': window_id
+            }
+            submit_button = {
+                'element': input_elements[2],
+                'element_type': self.settings['login_data']['button_key'],
+                'element_name': self.settings['login_data']['button_value'],
+                'sleep': sleep,
+                'window_id': window_id
+            }
+            # set_text(element=input_elements[0], element_type=self.settings['login_data']['name_key'],
+            #             element_name=self.settings['login_data']['name_value'], data=self.account['login'])
+            # set_text(element=input_elements[1], element_type=self.settings['login_data']['pass_key'],
+            #             element_name=self.settings['login_data']['pass_value'], data=self.account['pass'])
+            # click_element(element=input_elements[2], element_type=self.settings['login_data']['button_key'],
+            #                  element_name=self.settings['login_data']['button_value'])
+
+        else:
+            acc_name = {
+                'element_type': self.login_data['name_key'],
+                'element_name': self.login_data['name_value'],
+                'data': self.account['login'],
+                'sleep': sleep,
+                'window_id': window_id,
+                'element': element
+            }
+            acc_pass = {
+                'element_type': self.login_data['pass_key'],
+                'element_name': self.login_data['pass_value'],
+                'data': self.account['pass'],
+                'sleep': sleep,
+                'window_id': window_id,
+                'element': element
+            }
+            if 'button_key' in self.account:
+                submit_button = {
+                    'element_type': self.account['button_key'],
+                    'element_name': self.account['button_value'],
+                    'sleep': sleep,
+                    'window_id': window_id,
+                    'element': element
+                }
+            else:
+                submit_key = {
+                    'element_type': self.login_data['pass_key'],
+                    'element_name': self.login_data['pass_value'],
+                    'key': self.key,
+                    'sleep': sleep,
+                    'window_id': window_id
+                }
+            # set_text(element_type=self.login_data['name_key'], element_name=self.login_data['name_value'],
+            #          data=self.account['login'], sleep=self.sleep, window_id=self.window_id,
+            #          element=self.element)  # Set name
+            # set_text(element_type=self.login_data['pass_key'], element_name=self.login_data['pass_value'],
+            #          data=self.account['pass'], sleep=self.sleep, window_id=self.window_id,
+            #          element=self.element)  # Set pass
+            # if self.submit_button:  # If given than click Button
+            #     click_element(element_type=self.account['button_key'], element_name=self.account['button_value'],
+            #                      sleep=self.sleep, window_id=self.window_id, element=self.element)
+            # else:  # Else press Key
+            #     click_key(element_type=self.login_data['pass_key'], element_name=self.login_data['pass_value'],
+            #                  key=self.key, sleep=self.sleep, window_id=self.window_id)
+
+        set_text(**acc_name)  # Set name
+        set_text(**acc_pass)  # Set pass
+        if submit_button:  # If Submit button element is given
+            click_element(**submit_button)
+        else:  # Else press Key
+            click_key(**submit_key)
+
+
 def open_window(url: str, sleep=SLEEP) -> str:
     """
     Open browser window and return it'd ID
