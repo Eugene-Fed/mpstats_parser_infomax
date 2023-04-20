@@ -4,7 +4,7 @@
 ### TODO list
 - [x] Use DOM Ready waiting instead of `time.sleep`. **DOESN'T WORK**
 - [x] If exception "Out of range", than reload page
-- [ ] Use `closure` or `class` **Authontefication** to create number of `log_in` functions for all needed accounts
+- [x] Use `closure` or `class` **Authontefication** to create number of `log_in` functions for all needed accounts
 - [ ] Create function to open Category Value page
 - [ ] Create module to load Categories Value from file
 - [ ] Add Comparative Frequency Data to Keyword Table
