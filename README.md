@@ -6,10 +6,12 @@
 - [x] If exception "Out of range", than reload page
 - [x] Use `closure` or `class` **Authontefication** to create number of `log_in` functions for all needed accounts
 - [x] Add Comparative Frequency Data to Keyword Table
+- [ ] Check exception below with closing browser window
 - [ ] Solve exception  
 `selenium.common.exceptions.StaleElementReferenceException:  
 Message: stale element reference: element is not attached to the page document`
 - [ ] Create function to open Category Value page
+- [ ] Get Category ID from `bablo button` from the bid for the first place
 - [ ] Create module to load Categories Value from file
 - [ ] Use filled CPM values instead of `0` for the 1st, 2nd and 3rd places
 - [ ] Parse Catagory Value statistics from MPStats
