@@ -14,7 +14,7 @@ import re
 from tqdm import tqdm
 
 KEYWORD_COUNT_START = 0
-KEYWORD_COUNT_LIMIT = 15
+KEYWORD_COUNT_LIMIT = 1
 NUMBER_OF_CATEGORIES = 5                             # about 8500 items
 KEYWORD_FREQ_LIMIT = 19999                              # Minimum keyword Frequency to parse statistics
 KEYWORD_STATISTICS_WAIT = 3                             # Time in seconds to wait for the page to load
@@ -26,17 +26,18 @@ KEYWORDS_WEEK_PATH = r"D:\Downloads\requests_week.csv"      # Weekly statistics 
 CATEGORY_VALUE_PATH = r"D:\Downloads\category_volume.csv"   # Revenue file by category
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
 # OUTPUT_STAT = f'D:\\Downloads\\stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
-OUTPUT_STAT = f'D:\\Downloads\\stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_[].csv'
+OUTPUT_STAT = f'D:\\Downloads\\stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_[]_{KEYWORD_COUNT_LIMIT}.csv'
 LOG_FILE = r'log.txt'
-CATEGORY_ID_PATTERN = r'\[.+\]$'                        # RegEx pattern to create Category ID URL
+CATEGORY_TEXT_TO_URL_PATTERN = r'\[.+\]$'                        # RegEx pattern to create URL
+PATTERN = re.compile(r'\[.+\]$')
 DATETIME_FORMAT = r'%Y-%m-%d %H:%M:%S'
 
 
 STAT_FILE_HEADERS = ['Запрос', 'Частотность в мес.', 'Частотность в нед.', 'Изменение мес/мес, %',
-                     'Изменение нед/нед, %', 'Приоритетная категория',
+                     'Изменение нед/нед, %', 'Приоритетная категория (Кнопка Бабло)',
                      '1 место', '2 место', '3 место', '4 место', '5 место',
-                     'Объем продаж категории, руб', 'Объем продаж по запросу, руб']
-CATEGORY_FILE_HEADERS = ['ID', 'Название', 'Объем продаж']
+                     'Объем продаж категории, руб', 'Объем продаж по запросу, руб', 'Путь к категории (MP Stats)']
+CATEGORY_FILE_HEADERS = ['ID', 'Путь категории', 'Объем продаж']
 
 
 def log_in(account: dict, login_data: dict, sleep=0, key='enter',
@@ -238,13 +239,13 @@ def update_keywords(settings, account, webdriver_dir=None, window_id=None, log_i
     # bm.close_window(window_id)
 
 
-def get_category_name(idx: int, settings=None, account=None,
+def get_category_name(category_index: int, settings=None, account=None,
                       window_id=None, webdriver_dir=None, sleep=0) -> str:
     """
 
     :param settings:
     :param account:
-    :param idx:
+    :param category_index:
     :param window_id: Browser tab ID. If set it than `webdriver_dir` not needed
     :param webdriver_dir:
     :param sleep:
@@ -262,13 +263,14 @@ def get_category_name(idx: int, settings=None, account=None,
             print('`window_id` and `webdriver_dir` not set')
             return
 
-    pattern = re.compile(CATEGORY_ID_PATTERN)  # RegEx pattern to create Category ID URL
+    # PATTERN = re.compile(CATEGORY_TEXT_TO_URL_PATTERN)  # RegEx PATTERN to create Category ID URL
     # for idx in range(NUMBER_OF_CATEGORIES):
     #   repl = str(idx+1)                       # because we have not 0th category
-    category_id_url = pattern.sub(str(idx), settings['urls']['category_id'])        # create url with category id
+    category_id_url = PATTERN.sub(str(category_index), settings['urls']['category_id'])    # create url with category id
 
     # Open keyword stat page
-    window_id = bm.open_window(category_id_url, sleep=1)
+    # window_id = bm.open_window(category_id_url, sleep=1)
+    bm.open_window(category_id_url, sleep=1)
     # Search for block with Category name string
     category_field = bm.find_elements(element_type=settings['category_name']['field_key'],
                                      element_name=settings['category_name']['field_value'],
@@ -279,15 +281,23 @@ def get_category_name(idx: int, settings=None, account=None,
                                          sleep=0, repeat=0, element=category_field[0])  # class: 'ml-1'
 
         category_path = re.sub(r"\s", "", category_path[1].text)         # delete spaces around slash character
-        categories[idx] = [category_path]
-        print(f'Category index: {idx+1}\nPath 2: `{category_path}`')
+        categories[category_index] = [category_path]
+        # print(f'Category index: {category_index + 1}\nPath 2: `{category_path}`')
         return category_path
     else:
-        print(f'Category {idx} not found')
+        print(f'Category {category_index} not found')
         return
 
     #     time.sleep(sleep)
     # bm.close_window(window_id)
+
+
+def get_category_volume(category_name: str, window_id: str, settings=None, sleep=0) -> int:
+    bm.change_tab(window_id)
+    # create url with category name
+    category_volume_url = PATTERN.sub(str(category_name), settings['urls']['category_volume'])
+    bm.open_window(category_volume_url, sleep=2)
+    time.sleep(sleep)
 
 
 if __name__ == '__main__':
@@ -368,31 +378,47 @@ if __name__ == '__main__':
     bm.open_window(settings['bablo_button'][bablo_btn_account_id]['urls']['keywords'])
 
     # Open and login `MP Stats` account
-    # tab_ids['mp_stats_cat_id'] = bm.add_tab('')
-    # bm.open_window(settings['mpstats'][mp_stats_account_id]['urls']['login'])  # Open auth window for `MP Stats`
-    # auth_to['mp_stats'](window_id=tab_ids['mp_stats_cat_id'])                   # call of `mp_stats` Auth object
+    tab_ids['mp_stats_cat_id'] = bm.add_tab('')
+    bm.open_window(settings['mpstats'][mp_stats_account_id]['urls']['login'])  # Open auth window for `MP Stats`
+    auth_to['mp_stats'](window_id=tab_ids['mp_stats_cat_id'])                   # call of `mp_stats` Auth object
     # TODO get category path by id to create category volume url
-    # tab_ids['mp_stats_cat_volume'] = bm.add_tab(settings['mpstats'][mp_stats_account_id]['urls']['category_volume'])
+    # Create url plug
+    cat_volume_url = re.match(r'^.+\?', settings['mpstats'][mp_stats_account_id]['urls']['category_volume']).group()
+    tab_ids['mp_stats_cat_volume'] = bm.add_tab(cat_volume_url)
 
-    for idx, keyword in enumerate(month_keywords[KEYWORD_COUNT_START:KEYWORD_COUNT_LIMIT]):
+    # Getting Category volume
+    for cat_id in range(1, NUMBER_OF_CATEGORIES):
+        cat_name = get_category_name(category_index=cat_id, settings=settings['mpstats'][mp_stats_account_id],
+                          window_id=tab_ids['mp_stats_cat_id'], sleep=2)
+        if cat_name:
+            cat_volume = get_category_volume(category_name=cat_name, settings=settings['mpstats'][mp_stats_account_id],
+                                             window_id=tab_ids['mp_stats_cat_volume'], sleep=3)
+            category_volume[cat_id] = [cat_name, cat_volume]
+
+    # Getting statistics by keywords
+    for idx, (keyword, month_frequency) in enumerate(month_keywords[KEYWORD_COUNT_START:KEYWORD_COUNT_LIMIT]):
         bm.change_tab(tab_ids['bablo_btn_0'])
         print(f'{idx + 1} / {KEYWORD_COUNT_LIMIT}')
 
-        # update_keywords(settings=settings['bablo_button'][bablo_btn_account_id],
-        #                 account=api_keys['bablo_btn']['accounts'][bablo_btn_account_id],
-        #                 window_id=browser_keyword_tab)
-
-        stat = get_keyword_stat(tab_ids['bablo_btn_0'], 'name', 'value', keyword=keyword[0],
+        stat = get_keyword_stat(tab_ids['bablo_btn_0'], 'name', 'value', keyword=keyword,
                                 settings=settings['bablo_button'][bablo_btn_account_id]['keywords_stat'],
                                 sleep=KEYWORD_STATISTICS_WAIT)
 
-        keyword, month_frequency = keyword[0], keyword[1]
+        # keyword, month_frequency = keyword_and_freq[0], keyword_and_freq[1]
         week_frequency = week_keywords.pop(keyword, '')  # получаем значение недельной частотности
 
         # Если нашли элемент со статистикой категории, тогда сохраняем все прочие данные в таблицу
         if stat['categories']:
+            cat_id = re.search(r'\d+', ['categories'][0])                       # Get category ID
+            cat_name, sales_volume = category_volume.get(cat_id, default='')    # Get Name and sales Volume for Category
+            # if cat_id in category_volume:
+            #     sales_volume = category_volume[cat_id][1]
+            # else:
+            #     cat_name = get_category_name(cat_id, settings=settings['mpstats'][mp_stats_account_id],
+            #                                  window_id=tab_ids['mp_stats_cat_id'])
+            #     sales_volume = ''  # Volume of sales
+
             bids = [x[1] for x in stat['bids']]  # Required bids
-            sales_volume = ''  # Volume of sales
             output_stats = [keyword, month_frequency, week_frequency, '', '', stat['categories'][0]]
             output_stats.extend(bids)
             output_stats.append(sales_volume)
@@ -402,11 +428,7 @@ if __name__ == '__main__':
             output_stat_writer.writerow([keyword, month_frequency, week_frequency])
         print(stat)
 
-    # for idx in range(1, 4):
-    #     print(get_category_name(idx=idx, settings=settings['mpstats'][mp_stats_account_id],
-    #                       window_id=browser_category_name_tab, sleep=2))
-
-    time.sleep(5)
+    time.sleep(3)
     bm.close_window(tab_ids['main'])            # Stop browser
     output_file.close()                         # Close output file
 
