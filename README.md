@@ -6,6 +6,9 @@
 - [x] If exception "Out of range", than reload page
 - [x] Use `closure` or `class` **Authontefication** to create number of `log_in` functions for all needed accounts
 - [x] Add Comparative Frequency Data to Keyword Table
+- [ ] Solve exception  
+`selenium.common.exceptions.StaleElementReferenceException:  
+Message: stale element reference: element is not attached to the page document`
 - [ ] Create function to open Category Value page
 - [ ] Create module to load Categories Value from file
 - [ ] Use filled CPM values instead of `0` for the 1st, 2nd and 3rd places
