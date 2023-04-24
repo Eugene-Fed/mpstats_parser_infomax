@@ -5,6 +5,7 @@ import json
 import csv
 import sys
 import file_manager as fm  # Управление файлами настроек, паролей и т.п.
+import importlib            # used for reload `selenium_browser_manager` module
 import selenium_browser_manager as bm  # Управление браузером
 from selenium.webdriver.common.by import By
 from pathlib import Path
@@ -13,7 +14,7 @@ from datetime import datetime
 import re
 from tqdm import tqdm
 
-KEYWORD_COUNT_START = 3334
+KEYWORD_COUNT_START = 0
 KEYWORD_COUNT_LIMIT = 15000
 NUMBER_OF_CATEGORIES = 0                             # about 8500 items
 KEYWORD_FREQ_LIMIT = 19999                              # Minimum keyword Frequency to parse statistics
@@ -27,17 +28,18 @@ KEYWORDS_WEEK_PATH = r"D:\Downloads\requests_week.csv"      # Weekly statistics 
 CATEGORY_VALUE_PATH = r"D:\Downloads\category_volume.csv"   # Revenue file by category
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
 # OUTPUT_STAT = f'D:\\Downloads\\stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
-OUTPUT_STAT = f'D:\\Downloads\\stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_[]_{KEYWORD_COUNT_LIMIT}.csv'
+OUTPUT_STAT = f'D:\\Downloads\\stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_[]-{KEYWORD_COUNT_LIMIT}.csv'
 LOG_FILE = r'log.txt'
 CATEGORY_TEXT_TO_URL_PATTERN = r'\[.+\]$'                        # RegEx pattern to create URL
 PATTERN = re.compile(r'\[.+\]$')
 DATETIME_FORMAT = r'%Y-%m-%d %H:%M:%S'
 
 
-STAT_FILE_HEADERS = ['Запрос', 'Частотность в мес.', 'Частотность в нед.', 'Изменение мес/мес, %',
+STAT_FILE_HEADERS = ['Запрос', 'Частотность в мес. (WB)', 'Частотность в нед. (WB)', 'Изменение мес/мес, %',
                      'Изменение нед/нед, %', 'Приоритетная категория (Кнопка Бабло)',
-                     '1 место', '2 место', '3 место', '4 место', '5 место',
-                     'Объем продаж категории, руб', 'Объем продаж по запросу, руб', 'Путь к категории (MP Stats)']
+                     '1 место, руб.', '2 место, руб.', '3 место, руб.', '4 место, руб.', '5 место, руб.',
+                     'Объем продаж категории, руб (MP Stats)', 'Объем продаж по фразе, руб (MP Stats)',
+                     'Путь к категории (MP Stats)']
 CATEGORY_FILE_HEADERS = ['ID', 'Путь категории', 'Объем продаж']
 
 
@@ -340,13 +342,15 @@ if __name__ == '__main__':
     # TODO - create log_file_writer() function
     try:
         log = open(LOG_FILE, 'a', encoding='utf-8')  # Append date into exists `log` file
+        log.write(f'\n')
     except FileNotFoundError or FileExistsError as e:
         print(e)
         log = open(LOG_FILE, 'w', encoding='utf-8')  # Create `log` file
     except Exception as e:
         print(e)
     finally:
-        log.write(f'START at: {start_datetime.strftime(DATETIME_FORMAT)}\n#########################')
+        log.write(f'#########################\n'
+                  f'START at: {start_datetime.strftime(DATETIME_FORMAT)}\n')
         log.close()
 
     # TODO - Rewrite to use `DOM Ready` factor instead of sleeping. FIX - it doesn't work!!! Use time.time.sleep()
@@ -402,10 +406,11 @@ if __name__ == '__main__':
     output_stat_writer = csv.writer(output_file, dialect='excel')
     output_stat_writer.writerow(STAT_FILE_HEADERS)
 
-    start_keyword_id = 0        # save last keyword id to getting stat. starts from 0
-    start_cat_id = 0            # save last category id to getting stat. starts from 0
+    start_keyword_id = 0        # save next keyword id to getting stat. starts from 0
+    start_cat_id = 0            # save next category id to getting stat. starts from 0
     while True:         # Create new browser after any window crash until manual break
         try:
+            bm = importlib.reload(bm)  # reload module before using
             tab_ids = create_browser_window(settings=settings, accounts=accounts_ids)
             '''
             # Create Main browser window
@@ -442,9 +447,8 @@ if __name__ == '__main__':
             # Getting statistics by keywords
             start_from = KEYWORD_COUNT_START + start_keyword_id     # If process was break we will start from last ID
             for idx, (keyword, month_frequency) in enumerate(month_keywords[start_from:KEYWORD_COUNT_LIMIT]):
-                start_keyword_id = idx                  # Remember element ID in current slice of keywords list
                 bm.change_tab(tab_ids['bablo_btn_0'])
-                print(f'{start_from + 1} / {len(month_keywords)}')
+                print(f'{start_from + 1 + idx} / {len(month_keywords)}')
 
                 stat = get_keyword_stat(tab_ids['bablo_btn_0'], 'name', 'value', keyword=keyword,
                                         settings=settings['bablo_button'][bablo_btn_account_id]['keywords_stat'],
@@ -472,19 +476,27 @@ if __name__ == '__main__':
                     output_stats.append(sales_volume)
                     output_stat_writer.writerow(output_stats)
                 else:
-                    # Если категория не обнаружена, значит в `Кнопке Бабло отсутствуют данные`
+                    # If category not found then `Bablo Button` hasn't data.
                     output_stat_writer.writerow([keyword, month_frequency, week_frequency])
                 print(stat)
+                start_keyword_id += 1  # Remember element ID for the next slice of keywords list
 
             time.sleep(1)
-            bm.close_window(tab_ids['main'])            # Stop browser
+            # bm.close_window(tab_ids['main'])            # Stop browser
             # total_exception = None
             break                                       # Exit from `While True` loop
         except Exception as total_exception:
             print(total_exception)
             with open(LOG_FILE, 'a', encoding='utf-8') as log:
                 # TODO - create log_file_writer() function
-                log.write(f'\n{total_exception}\nat: {datetime.now().strftime(DATETIME_FORMAT)}')
+                log.write(f'Exception at: {datetime.now().strftime(DATETIME_FORMAT)}. Keyword ID: {start_from+1}\n')
+        finally:
+            pass
+    try:
+        bm.close_window(tab_ids['main'])  # Stop browser
+    except Exception as ex:
+        print(ex)
+        # break                                       # Exit from `While True` loop
 
     output_file.close()                         # Close output file
 
@@ -499,9 +511,9 @@ if __name__ == '__main__':
     except Exception as e:
         print(e)
     finally:
-        log.write(f'\nFINISH at: {finish_datetime.strftime(DATETIME_FORMAT)}')
+        log.write(f'FINISH at: {finish_datetime.strftime(DATETIME_FORMAT)}\n')
         # if total_exception:
         #     log.write(f'with Exception:\n{total_exception}')
-        log.write(f'\nTotal time: {work_time}, Total keywords: {len(month_keywords)}'
-                  f'\n#########################\n')
+        log.write(f'Total time: {work_time}, Total keywords: {len(month_keywords)}\n'
+                  f'#########################\n')
         log.close()

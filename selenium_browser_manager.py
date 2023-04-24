@@ -252,7 +252,7 @@ def reload_page(handler=None, sleep=SLEEP):
             driver.switch_to.window(handler)
         # time.sleep(sleep * 2)  # if element was not found than wait for 10 seconds, reload page and try again
         driver.refresh()
-        time.sleep(sleep * 2)
+        time.sleep(sleep)
     except Exception as ex:
         print(ex)
 
