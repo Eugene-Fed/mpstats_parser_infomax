@@ -250,7 +250,7 @@ def reload_page(handler=None, sleep=SLEEP):
     try:
         if handler:
             driver.switch_to.window(handler)
-        time.sleep(sleep * 2)  # if element was not found than wait for 10 seconds, reload page and try again
+        # time.sleep(sleep * 2)  # if element was not found than wait for 10 seconds, reload page and try again
         driver.refresh()
         time.sleep(sleep)
     except Exception as ex:
@@ -277,7 +277,7 @@ def set_text(element_type: str, element_name: str, data: str, sleep=SLEEP, eleme
         # TODO - Use Optional parameter `element` to searching
         if window_id:
             driver.switch_to.window(window_id)
-        element_input = find_elements(element_type, element_name, element=element, window_id=window_id)
+        element_input = find_elements(element_type, element_name, element=element, window_id=window_id, repeat=2)
         if element_input:
             element_input[0].clear()                # temporarily pick up only the first element
             element_input[0].send_keys(data)
