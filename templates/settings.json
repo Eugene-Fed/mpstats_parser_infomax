@@ -2,10 +2,55 @@
     "webdriver_dir": "drivers/chromedriver.exe",
     "api-keys_dir": "api-keys",
     "api-keys_file": "api-keys.json",
-    "accounts": {
-        "ms_stats": {
-            "login": "",
-            "pass": ""
+    "category_volume_file": "category_volume.csv",
+    "mpstats": [
+        {
+            "urls":
+            {
+                "login": "https://mpstats.io/login",
+                "keywords": "https://mpstats.io/wb/tools/check-rates/result",
+                "category_id": "https://mpstats.io/wb/subject?id=[number]",
+                "category_volume": "https://mpstats.io/wb/category?url=[Ссылка_%20_на_%20_категорию %2F Подкатегория]",
+                "keyword_volume": "https://mpstats.io/seo/keyword/[keyword]"
+            },
+            "login_data": {
+                "name_key": "",
+                "name_value": "",
+                "pass_key": "",
+                "pass_value": "",
+                "button_key": "",
+                "button_value": ""
+            },
+            "category_name": {
+                "field_key": "",
+                "field_value": "",
+                "category_key": "",
+                "category_value": ""
+            }
         }
-    }
+    ],
+    "bablo_button": [
+        {
+            "urls": {
+                "login": "https://www.knopka-bablo.online/login",
+                "keywords": "https://www.knopka-bablo.online/current-bets"
+            },
+            "login_data": {
+                "name_key": "",
+                "name_value": "",
+                "pass_key": "",
+                "pass_value": ""
+            },
+            "keywords_stat": {
+                "prior_cat": {
+                    "element_type": "",
+                    "element_name": ""
+                },
+                "bids_table": {
+                    "element_type": "",
+                    "element_name": ""
+                }
+            }
+        }
+    ]
 }

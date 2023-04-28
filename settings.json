@@ -1,29 +1,75 @@
 {
-    "webdriver_dir": "drivers/chromedriver.exe",
+    "webdriver_dir": "drivers/chromedriver_win.exe",
+    "webdrivers": [
+    ],
+    "webdriver_dir": "drivers/chromedriver",
     "api-keys_dir": "api-keys",
     "api-keys_file": "api-keys.json",
-    "mpstats_url": [
+    "category_volume_file": "category_volume.csv",
+    "constants": [
         {
-            "login": "https://analitika-wb-ozon.pro/auth",
-            "keywords": "https://analitika-wb-ozon.pro/wb/category?url=",
+            "KEYWORD_COUNT_START": 0,
+            "KEYWORD_COUNT_LIMIT": 15000,
+            "NUMBER_OF_CATEGORIES": 0,
+            "KEYWORD_FREQ_LIMIT": 19999,
+            "KEYWORD_STATISTICS_WAIT": 3,
+            "KEYWORD_STATISTICS_TRIES": 5,
+            "OTHER_ELEMENTS_TRIES": 2,
+            "REQUIRED_PLACE_INDEXES": [1, 2, 3, 4, 5],
+            "KEYWORDS_MONTH_PATH": "D:/Downloads/requests_month.csv",
+            "KEYWORDS_WEEK_PATH": "D:/Downloads/requests_week.csv",
+            "CATEGORY_VALUE_PATH": "D:/Downloads/category_volume.csv",
+            "LOG_FILE": "log.txt"
+        }
+    ],
+    "mpstats": [
+        {
+            "urls":
+            {
+                "login": "https://analitika-wb-ozon.pro/auth",
+                "category_id": "https://analitika-wb-ozon.pro/wb/subject?id=[number]",
+                "category_volume": "https://analitika-wb-ozon.pro/wb/category?url=[Ссылка_%20_на_%20_категорию %2F Подкатегория]",
+                "keyword_volume": "https://analitika-wb-ozon.pro/seo/keyword/[keyword]"
+            },
             "login_data": {
-                "name_key": "id",
-                "name_value": "email",
-                "pass_key": "name",
-                "pass_value": "password"
+                "name_key": "tag",
+                "name_value": "input",
+                "pass_key": "tag",
+                "pass_value": "input",
+                "button_key": "tag",
+                "button_value": "input"
+            },
+            "category_name": {
+                "field_key": "class",
+                "field_value": "justify-content-start",
+                "category_key": "class",
+                "category_value": "ml-1"
             }
         },
         {
-            "login": "https://mpstats.io/login",
-            "keywords": "https://mpstats.io/wb/tools/check-rates/result",
+            "urls":
+            {
+                "login": "https://mpstats.io/login",
+                "keywords": "https://mpstats.io/wb/tools/check-rates/result",
+                "category_id": "https://mpstats.io/wb/subject?id=[number]",
+                "category_volume": "https://mpstats.io/wb/category?url=[Ссылка_%20_на_%20_категорию %2F Подкатегория]",
+                "keyword_volume": "https://mpstats.io/seo/keyword/[keyword]"
+            },
             "login_data": {
                 "name_key": "id",
                 "name_value": "email",
                 "pass_key": "name",
                 "pass_value": "password"
+            },
+            "category_name": {
+                "field_key": "class",
+                "field_value": "justify-content-start",
+                "category_key": "class",
+                "category_value": "ml-1"
             }
         }
     ],
+<<<<<<< HEAD
     "bablo_url": {
         "login": "https://www.knopka-bablo.online/login",
         "keywords": "https://www.knopka-bablo.online/current-bets",
@@ -37,11 +83,39 @@
             "prior_cat": {
                 "element_type": "class",
                 "element_name": "sc-hFRZIz"
+=======
+    "bablo_button": [
+        {
+            "urls": {
+                "login": "https://www.knopka-bablo.online/login",
+                "keywords": "https://www.knopka-bablo.online/current-bets"
+>>>>>>> dc02b851f71069ce6320f0c2ebd623d020018876
             },
-            "bids_table": {
-                "element_type": "class",
-                "element_name": "MuiDataGrid-row"
+            "login_data": {
+                "name_key": "name",
+                "name_value": "phoneNumber",
+                "pass_key": "name",
+                "pass_value": "password"
+            },
+            "keywords_stat": {
+                "prior_cat": {
+                    "element_type": "class",
+                    "element_name": "sc-iNKjke"
+                },
+                "keyword": {
+                    "element_type": "class",
+                    "element_name": "sc-iKSnhI"
+                },
+                "last_requests": {
+                    "element_type": "class",
+                    "element_name": "sc-kAfTll",
+                    "element_value": "Последние 5 запросов"
+                },
+                "bids_table": {
+                    "element_type": "class",
+                    "element_name": "MuiDataGrid-row"
+                }
             }
         }
-    }
+    ]
 }
