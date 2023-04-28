@@ -2,6 +2,7 @@
     "webdriver_dir": "drivers/chromedriver_win.exe",
     "webdrivers": [
     ],
+    "webdriver_dir": "drivers/chromedriver",
     "api-keys_dir": "api-keys",
     "api-keys_file": "api-keys.json",
     "category_volume_file": "category_volume.csv",

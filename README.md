@@ -1,6 +1,6 @@
 ### Маркетплейс парсер
 
-### RUN
+### HOW TO RUN
 You can use number of parameters to start with script:
 - `-s`, `--key_start`: Start keyword ID from list
 - `-l`. `--key_limit`: Maximum limit of keyword in output file
@@ -8,6 +8,14 @@ You can use number of parameters to start with script:
 - `-w`, `--wait`: Time to wait between web browser manipulations in seconds
 - `-t`, `--tries`: Number of keyword statistics download tries
 - `-c`, `--number_of_categories`: Maximum number of researching categories
+
+#### MacOS
+- `brew install --cask chromedriver`
+- `brew install --cask google-chrome`
+- edit settings in `settings.json` with path to google-chrome `"webdriver_dir": "/opt/homebrew/bin/chromedriver"`
+- `brew install python`
+- `pip3 install -r requirements.txt`
+- `python3 main.py`
 
 ### TODO list
 - [x] Use DOM Ready waiting instead of `time.sleep`. **DOESN'T WORK**
@@ -18,6 +26,7 @@ You can use number of parameters to start with script:
 - [x] Solve exception  
 `selenium.common.exceptions.StaleElementReferenceException:  
 Message: stale element reference: element is not attached to the page document`
+- [x] Make env parameter for "webdriver_dir"
 - [ ] Create function to open Category Value page
 - [ ] Study `LambdaTest` library for `Selenium`
 - [ ] Get Category ID from `bablo button` from the bid for the first place

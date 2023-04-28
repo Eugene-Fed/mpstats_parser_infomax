@@ -24,12 +24,12 @@ KEYWORD_STATISTICS_TRIES = 5
 OTHER_ELEMENTS_TRIES = 2
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Set the positions for which we will collect statistics (from 1st)
 # TODO - Rewrite to search for system `Downloads` directory
-KEYWORDS_MONTH_PATH = r"D:\Downloads\requests_month.csv"    # Monthly statistics download file from Wildberries
-KEYWORDS_WEEK_PATH = r"D:\Downloads\requests_week.csv"      # Weekly statistics download file from Wildberries
-CATEGORY_VALUE_PATH = r"D:\Downloads\category_volume.csv"   # Revenue file by category
+KEYWORDS_MONTH_PATH = r"requests_month.csv"    # Monthly statistics download file from Wildberries
+KEYWORDS_WEEK_PATH = r"requests_week.csv"      # Weekly statistics download file from Wildberries
+CATEGORY_VALUE_PATH = r"category_volume.csv"   # Revenue file by category
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
 # OUTPUT_STAT = f'D:\\Downloads\\stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
-OUTPUT_STAT = f'D:\\Downloads\\stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_[]-{KEYWORD_COUNT_LIMIT}.csv'
+OUTPUT_STAT = f'stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_[]-{KEYWORD_COUNT_LIMIT}.csv'
 LOG_FILE = r'log.txt'
 CATEGORY_TEXT_TO_URL_PATTERN = r'\[.+\]$'                        # RegEx pattern to create URL
 PATTERN = re.compile(r'\[.+\]$')
