@@ -1,5 +1,13 @@
 ### Маркетплейс парсер
 
+### RUN
+You can use number of parameters to start with script:
+- `-s`, `--key_start`: Start keyword ID from list
+- `-l`. `--key_limit`: Maximum limit of keyword in output file
+- `-f`, `--freq_limit`: Minimum keyword month frequency limit to research
+- `-w`, `--wait`: Time to wait between web browser manipulations in seconds
+- `-t`, `--tries`: Number of keyword statistics download tries
+- `-c`, `--number_of_categories`: Maximum number of researching categories
 
 ### TODO list
 - [x] Use DOM Ready waiting instead of `time.sleep`. **DOESN'T WORK**
@@ -24,7 +32,12 @@ https://clck.ru/345Ffa
 https://habr.com/ru/companies/otus/articles/596071/
 - [ ] Add screenshot generator into Exception handler: 'driver.save_screenshot(capture_path)'
 - [ ] Write module to use `Headless Chrome`
+- [ ] Research `keyloak` for handling login data
 
 ### Tutorials
 https://pythonworld.ru/moduli/modul-csv.html
 https://www.lambdatest.com/learning-hub/python-tutorial
+http://cs.mipt.ru/advanced_python/lessons/lab04.html - for param parser
+
+### Downloads
+https://chromedriver.chromium.org/downloads

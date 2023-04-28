@@ -1,8 +1,26 @@
 {
-    "webdriver_dir": "drivers/chromedriver.exe",
+    "webdriver_dir": "drivers/chromedriver_win.exe",
+    "webdrivers": [
+    ],
     "api-keys_dir": "api-keys",
     "api-keys_file": "api-keys.json",
     "category_volume_file": "category_volume.csv",
+    "constants": [
+        {
+            "KEYWORD_COUNT_START": 0,
+            "KEYWORD_COUNT_LIMIT": 15000,
+            "NUMBER_OF_CATEGORIES": 0,
+            "KEYWORD_FREQ_LIMIT": 19999,
+            "KEYWORD_STATISTICS_WAIT": 3,
+            "KEYWORD_STATISTICS_TRIES": 5,
+            "OTHER_ELEMENTS_TRIES": 2,
+            "REQUIRED_PLACE_INDEXES": [1, 2, 3, 4, 5],
+            "KEYWORDS_MONTH_PATH": "D:/Downloads/requests_month.csv",
+            "KEYWORDS_WEEK_PATH": "D:/Downloads/requests_week.csv",
+            "CATEGORY_VALUE_PATH": "D:/Downloads/category_volume.csv",
+            "LOG_FILE": "log.txt"
+        }
+    ],
     "mpstats": [
         {
             "urls":
@@ -65,15 +83,15 @@
             "keywords_stat": {
                 "prior_cat": {
                     "element_type": "class",
-                    "element_name": "sc-hFRZIz"
+                    "element_name": "sc-iNKjke"
                 },
                 "keyword": {
                     "element_type": "class",
-                    "element_name": "sc-jFyCeV"
+                    "element_name": "sc-iKSnhI"
                 },
                 "last_requests": {
                     "element_type": "class",
-                    "element_name": "sc-behMKO",
+                    "element_name": "sc-kAfTll",
                     "element_value": "Последние 5 запросов"
                 },
                 "bids_table": {
