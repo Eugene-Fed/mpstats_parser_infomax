@@ -24,7 +24,18 @@ https://clck.ru/345Ffa
 https://habr.com/ru/companies/otus/articles/596071/
 - [ ] Add screenshot generator into Exception handler: 'driver.save_screenshot(capture_path)'
 - [ ] Write module to use `Headless Chrome`
+- [ ] Make env parameter for "webdriver_dir"
 
 ### Tutorials
 https://pythonworld.ru/moduli/modul-csv.html
 https://www.lambdatest.com/learning-hub/python-tutorial
+
+### How to run
+
+#### MacOS
+- `brew install --cask chromedriver`
+- `brew install --cask google-chrome`
+- edit settings in `settings.json` with path to google-chrome `"webdriver_dir": "/opt/homebrew/bin/chromedriver"`
+- `brew install python`
+- `pip3 install -r requirements.txt`
+- `python3 main.py`
