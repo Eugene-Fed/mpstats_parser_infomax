@@ -52,7 +52,7 @@
                 "login": "https://mpstats.io/login",
                 "keywords": "https://mpstats.io/wb/tools/check-rates/result",
                 "category_id": "https://mpstats.io/wb/subject?id=[number]",
-                "category_volume": "https://mpstats.io/wb/category?url=[Ссылка_%20_на_%20_категорию %2F Подкатегория]",
+                "category_volume": "https://mpstats.io/wb/category?url=[Путь_%20_к_%20_категории %2F Подкатегория]",
                 "keyword_volume": "https://mpstats.io/seo/keyword/[keyword]"
             },
             "login_data": {
@@ -69,27 +69,11 @@
             }
         }
     ],
-<<<<<<< HEAD
-    "bablo_url": {
-        "login": "https://www.knopka-bablo.online/login",
-        "keywords": "https://www.knopka-bablo.online/current-bets",
-        "login_data": {
-            "name_key": "name",
-            "name_value": "phoneNumber",
-            "pass_key": "name",
-            "pass_value": "password"
-        },
-        "keywords_stat": {
-            "prior_cat": {
-                "element_type": "class",
-                "element_name": "sc-hFRZIz"
-=======
     "bablo_button": [
         {
             "urls": {
                 "login": "https://www.knopka-bablo.online/login",
                 "keywords": "https://www.knopka-bablo.online/current-bets"
->>>>>>> dc02b851f71069ce6320f0c2ebd623d020018876
             },
             "login_data": {
                 "name_key": "name",

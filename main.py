@@ -16,7 +16,8 @@ import re
 from argparse import ArgumentParser
 from tqdm import tqdm
 
-NUMBER_OF_CATEGORIES = 0                                # about 8 500 items
+CATEGORY_COUNT_START = 100
+CATEGORY_COUNT_LIMIT = 105                                # about 8 500 items
 KEYWORD_COUNT_START = 0
 KEYWORD_COUNT_LIMIT = 15000                             # about 15 000 items
 KEYWORD_FREQ_LIMIT = 19999                              # Minimum keyword Frequency to parse statistics
@@ -25,9 +26,9 @@ KEYWORD_STATISTICS_TRIES = 5
 OTHER_ELEMENTS_TRIES = 2
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Set the positions for which we will collect statistics (from 1st)
 # TODO - Rewrite to search for system `Downloads` directory
-KEYWORDS_MONTH_PATH = r"requests_month.csv"    # Monthly statistics download file from Wildberries
-KEYWORDS_WEEK_PATH = r"requests_week.csv"      # Weekly statistics download file from Wildberries
-CATEGORY_VALUE_PATH = r"category_volume.csv"   # Revenue file by category
+KEYWORDS_MONTH_PATH = r"D:/Downloads/requests_month.csv"    # Monthly statistics download file from Wildberries
+KEYWORDS_WEEK_PATH = r"D:/Downloads/requests_week.csv"      # Weekly statistics download file from Wildberries
+CATEGORY_VALUE_PATH = r"D:/Downloads/category_volume.csv"   # Revenue file by category
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
 # OUTPUT_STAT = f'D:\\Downloads\\stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
 OUTPUT_STAT = f'stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_[]-{KEYWORD_COUNT_LIMIT}.csv'
@@ -56,7 +57,7 @@ def create_parser() -> ArgumentParser:
     parser.add_argument('-f', '--freq_limit', default=KEYWORD_FREQ_LIMIT)
     parser.add_argument('-w', '--wait', default=KEYWORD_STATISTICS_WAIT)
     parser.add_argument('-t', '--tries', default=KEYWORD_STATISTICS_TRIES)
-    parser.add_argument('-c', '--number_of_categories', default=NUMBER_OF_CATEGORIES)
+    parser.add_argument('-c', '--number_of_categories', default=CATEGORY_COUNT_LIMIT)
 
     return parser
 
@@ -147,7 +148,7 @@ def get_keyword_stat(window_id: str, element_type: str, element_name: str, keywo
     # time.sleep(sleep)
     # input key at text field
     bm.set_text(element_type, element_name, keyword.strip(), sleep=sleep, window_id=window_id)
-    bm.click_key(element_type, element_name, key='enter', window_id=window_id)      # press ENTER on keyboard
+    bm.click_key(element_type, element_name, key='enter', window_id=window_id, sleep=0)      # press ENTER on keyboard
     print(f'Keyword: "{keyword}"')
 
     categories = []
@@ -269,8 +270,8 @@ def update_keywords(settings, account, webdriver_dir=None, window_id=None, log_i
     # bm.close_window(window_id)
 
 
-def get_category_name(category_index: int, settings=None, account=None,
-                      window_id=None, webdriver_dir=None, sleep=0) -> str:
+def get_category_volume(category_index: int, settings=None, account=None,
+                        window_id=None, webdriver_dir=None, sleep=0) -> str:
     """
 
     :param settings:
@@ -281,26 +282,20 @@ def get_category_name(category_index: int, settings=None, account=None,
     :param sleep:
     :return: Name of searching category
     """
-    categories = {}  # Collection of Category ID, Name and Volume
 
-    if window_id:       # if we created new tab before use `get_category_name` then change it
+    category_id_url = PATTERN.sub(str(category_index), settings['urls']['category_id'])    # create url with category id
+
+    if window_id:       # if we created new tab before use `get_category_volume` then change it
         bm.change_tab(window_id)
+        bm.open_window(category_id_url, sleep=0)
     else:
         if webdriver_dir:                       # When we use in separately - create new window. Else - use window_id
             bm.DRIVER_PATH = webdriver_dir
-            # window_id = bm.open_window('')    # We don't use this `window_id`
+            window_id = bm.open_window(category_id_url, sleep=0)    # We don't use this `window_id`
         else:
             print('`window_id` and `webdriver_dir` not set')
             return
 
-    # PATTERN = re.compile(CATEGORY_TEXT_TO_URL_PATTERN)  # RegEx PATTERN to create Category ID URL
-    # for idx in range(NUMBER_OF_CATEGORIES):
-    #   repl = str(idx+1)                       # because we have not 0th category
-    category_id_url = PATTERN.sub(str(category_index), settings['urls']['category_id'])    # create url with category id
-
-    # Open keyword stat page
-    # window_id = bm.open_window(category_id_url, sleep=1)
-    bm.open_window(category_id_url, sleep=0)
     # Search for block with Category name string
     category_field = bm.find_elements(element_type=settings['category_name']['field_key'],
                                      element_name=settings['category_name']['field_value'],
@@ -311,23 +306,42 @@ def get_category_name(category_index: int, settings=None, account=None,
                                          sleep=0, repeat=0, element=category_field[0])  # class: 'ml-1'
 
         category_path = re.sub(r"\s", "", category_path[1].text)         # delete spaces around slash character
-        categories[category_index] = [category_path]
+        # categories[category_index] = [category_path]
         # print(f'Category index: {category_index + 1}\nPath 2: `{category_path}`')
-        return category_path
+        # return category_path
     else:
         print(f'Category {category_index} not found')
         return
 
-    #     time.sleep(sleep)
-    # bm.close_window(window_id)
+    # Click 'Category' tab for open page with categories volume file
+    bm.click_element(element_type='id',
+                     element_name='__BVID__51___BV_tab_button__',
+                     sleep=0,
+                     window_id=window_id)
+
+    # TODO - rewrite to use it in settings
+    time.sleep(sleep)
+    cat_volume_xpath = r'//*[@id="__BVID__51"]/div/div[4]/div/div/div[2]/div[2]/div[3]/div[2]/div/div/div[1]/div[5]'
+    cat_volume_elements = bm.find_elements(element_type='xpath', element_name=cat_volume_xpath, window_id=window_id)
+
+    if cat_volume_elements:             # `element.text` has format like `1 020 345 Р`
+        cat_vol = int(''.join(re.findall(r'\d+', cat_volume_elements[0].text)))     # get number from format text
+        # categories[category_index].append(cat_vol)
+        return [category_path, cat_vol]  # TODO - maybe use tuple instead of list
 
 
+"""
 def get_category_volume(category_name: str, window_id: str, settings=None, sleep=0) -> int:
     bm.change_tab(window_id)
     # create url with category name
+    '''
+    DEPRECATED
     category_volume_url = PATTERN.sub(str(category_name), settings['urls']['category_volume'])
-    bm.open_window(category_volume_url, sleep=2)
-    time.sleep(sleep)
+    bm.open_window(category_volume_url, sleep=2)      # TODO - not need
+    '''
+
+    # return(category_volume, category_path)
+"""
 
 
 def create_browser_window(settings: dict, accounts: dict, tab_ids={}) -> dict:
@@ -344,18 +358,20 @@ def create_browser_window(settings: dict, accounts: dict, tab_ids={}) -> dict:
     tab_ids['main'] = bm.open_window('https://google.com')
 
     # Open and login to `Bablo Button` account
+    # TODO - TEMPORARY HIDDEN
+    '''
     tab_ids['bablo_btn_0'] = bm.add_tab('')
     bm.open_window(settings['bablo_button'][accounts['bablo_btn_id']]['urls']['login'])
     auth_to['bablo_btn'](window_id=tab_ids['bablo_btn_0'])  # call of `bablo_btn` Auth object
 
     # Go to keywords stat page
     bm.open_window(settings['bablo_button'][accounts['bablo_btn_id']]['urls']['keywords'])
+    '''
 
     # Open and login `MP Stats` account
-    # TODO - TEMPORARY HIDDEN
-    # tab_ids['mp_stats_cat_id'] = bm.add_tab('')
-    # bm.open_window(settings['mpstats'][accounts['mp_stats_id']]['urls']['login'])  # Open auth window for `MP Stats`
-    # auth_to['mp_stats'](window_id=tab_ids['mp_stats_cat_id'])  # call of `mp_stats` Auth object
+    tab_ids['mp_stats_cat_id'] = bm.add_tab('')
+    bm.open_window(settings['mpstats'][accounts['mp_stats_id']]['urls']['login'])  # Open auth window for `MP Stats`
+    auth_to['mp_stats'](window_id=tab_ids['mp_stats_cat_id'])  # call of `mp_stats` Auth object
     # TODO get category path by id to create category volume url
     # Create url plug
     cat_volume_url = re.match(r'^.+\?', settings['mpstats'][accounts['mp_stats_id']]['urls']['category_volume']).group()
@@ -439,46 +455,39 @@ if __name__ == '__main__':
     output_stat_writer.writerow(STAT_FILE_HEADERS)
 
     start_keyword_id = 0        # save next keyword id to getting stat. starts from 0
-    start_cat_id = 0            # save next category id to getting stat. starts from 0
-    while True:         # Create new browser after any window crash until manual break
+    start_category_id = CATEGORY_COUNT_START            # save next category id to getting stat. starts from 0
+
+    while start_keyword_id < min(len(month_keywords), int(params.key_limit), KEYWORD_COUNT_LIMIT)\
+            and start_category_id < CATEGORY_COUNT_LIMIT:
+        """
+        Create new browser window after any crash while current `start_keyword_id` less than total keyword count
+        or keywords count limit from CONST or keywords count limit from startup parameters.
+        """
         try:
             bm = importlib.reload(bm)  # reload module before using
             tab_ids = create_browser_window(settings=settings, accounts=accounts_ids)
-            '''
-            # Create Main browser window
-            bm.DRIVER_PATH = settings['webdriver_dir']
-            tab_ids['main'] = bm.open_window('https://google.com')
-    
-            # Open and login to `Bablo Button` account
-            tab_ids['bablo_btn_0'] = bm.add_tab('')
-            bm.open_window(settings['bablo_button'][bablo_btn_account_id]['urls']['login'])  # Open auth window for `MP Stats`
-            auth_to['bablo_btn'](window_id=tab_ids['bablo_btn_0'])                   # call of `bablo_btn` Auth object
-    
-            # Go to keywords stat page
-            bm.open_window(settings['bablo_button'][bablo_btn_account_id]['urls']['keywords'])
-    
-            # Open and login `MP Stats` account
-            tab_ids['mp_stats_cat_id'] = bm.add_tab('')
-            bm.open_window(settings['mpstats'][mp_stats_account_id]['urls']['login'])  # Open auth window for `MP Stats`
-            auth_to['mp_stats'](window_id=tab_ids['mp_stats_cat_id'])                   # call of `mp_stats` Auth object
-            # TODO get category path by id to create category volume url
-            # Create url plug
-            cat_volume_url = re.match(r'^.+\?', settings['mpstats'][mp_stats_account_id]['urls']['category_volume']).group()
-            tab_ids['mp_stats_cat_volume'] = bm.add_tab(cat_volume_url)
-            '''
 
             # ---------- GET CATEGORY VOLUME ----------
-            # TODO - TEMPORARY HIDDEN
-            # for cat_id in range(1, NUMBER_OF_CATEGORIES):
-            #     cat_name = get_category_name(category_index=cat_id, settings=settings['mpstats'][mp_stats_account_id],
-            #                       window_id=tab_ids['mp_stats_cat_id'], sleep=2)
-            #     if cat_name:
-            #         cat_volume = get_category_volume(category_name=cat_name, settings=settings['mpstats'][mp_stats_account_id],
-            #                                          window_id=tab_ids['mp_stats_cat_volume'], sleep=3)
-            #         category_volume[cat_id] = [cat_name, cat_volume]
+            for cat_id in range(start_category_id, CATEGORY_COUNT_LIMIT):
+                if cat_id in category_volume: continue      #
+                cat_data = get_category_volume(category_index=cat_id, settings=settings['mpstats'][mp_stats_account_id],
+                                               window_id=tab_ids['mp_stats_cat_id'], sleep=5)
+                if cat_data:
+                    """
+                    cat_volume = get_category_volume(category_name=cat_data,
+                                                     settings=settings['mpstats'][mp_stats_account_id],
+                                                     window_id=tab_ids['mp_stats_cat_volume'], sleep=3)
+                    category_volume[cat_id] = [cat_data, cat_volume]
+                    """
+                    category_volume[cat_id] = cat_data
+                    print(category_volume[cat_id])
+
+                start_category_id += 1
 
             # ---------- GET KEYWORD STATISTICS ----------
+            # TODO - TEMPORARY HIDDEN
             start_from = int(params.key_start) + start_keyword_id     # If process was broken we will start from last ID
+            """
             for idx, (keyword, month_frequency) in enumerate(month_keywords[start_from : int(params.key_limit)]):
                 bm.change_tab(tab_ids['bablo_btn_0'])
                 print(f'{start_from + 1 + idx} / {len(month_keywords)}')
@@ -496,11 +505,11 @@ if __name__ == '__main__':
                     # Get Name and sales Volume for Category
                     sales_volume = ''
                     # TODO - TEMPORARY HIDDEN
-                    # cat_name, sales_volume = category_volume.get(cat_id, default=('', '')) # TODO solve problem
+                    # cat_data, sales_volume = category_volume.get(cat_id, default=('', '')) # TODO solve problem
                     # if cat_id in category_volume:
                     #     sales_volume = category_volume[cat_id][1]
                     # else:
-                    #     cat_name = get_category_name(cat_id, settings=settings['mpstats'][mp_stats_account_id],
+                    #     cat_data = get_category_volume(cat_id, settings=settings['mpstats'][mp_stats_account_id],
                     #                                  window_id=tab_ids['mp_stats_cat_id'])
                     #     sales_volume = ''  # Volume of sales
 
@@ -510,15 +519,25 @@ if __name__ == '__main__':
                     output_stats.append(sales_volume)
                     output_stat_writer.writerow(output_stats)
                 else:
+                    # TODO - use `type` and `name` from settings instead of hardcoded text or use current page url
+                    # if `login` page - relog in
+                    if bm.find_elements(element_type='name', element_name='password'):
+                        print(f"Un login at: {datetime.now()}")
+                        with open(LOG_FILE, 'a', encoding='utf-8') as log:
+                            # TODO - create log_file_writer() function
+                            log.write(f'Un Login at: {datetime.now().strftime(DATETIME_FORMAT)}. '
+                                      f'Current Keyword ID: {start_from}\n')
+                        break
+
                     # If category not found then `Bablo Button` hasn't data.
                     output_stat_writer.writerow([keyword, month_frequency, week_frequency])
                 print(stat)
                 start_keyword_id += 1  # Remember element ID for the next slice of keywords list
+            """
 
-            time.sleep(1)
-            # bm.close_window(tab_ids['main'])            # Stop browser
-            # total_exception = None
-            break                                       # Exit from `While True` loop
+            print(category_volume)
+            time.sleep(5)
+            # break                                       # Exit from `While True` loop
         except Exception as total_exception:
             print(total_exception)
             with open(LOG_FILE, 'a', encoding='utf-8') as log:
@@ -526,12 +545,12 @@ if __name__ == '__main__':
                 log.write(f'Exception at: {datetime.now().strftime(DATETIME_FORMAT)}. '
                           f'Current Keyword ID: {start_from+1}\n')
         finally:
-            pass
-    try:
-        bm.close_window(tab_ids['main'])  # Stop browser
-    except Exception as ex:
-        print(ex)
-        # break                                       # Exit from `While True` loop
+            # pass
+            try:
+                bm.close_window(tab_ids['main'])  # Stop browser
+            except Exception as ex:
+                print(ex)
+                # break                                       # Exit from `While True` loop
 
     output_file.close()                         # Close output file
 
