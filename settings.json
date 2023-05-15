@@ -32,18 +32,22 @@
                 "keyword_volume": "https://analitika-wb-ozon.pro/seo/keyword/[keyword]"
             },
             "login_data": {
-                "name_key": "tag",
-                "name_value": "input",
-                "pass_key": "tag",
-                "pass_value": "input",
-                "button_key": "tag",
-                "button_value": "input"
+                "name_key": "xpath",
+                "name_value": "/html/body/form/div/div[1]/input",
+                "pass_key": "xpath",
+                "pass_value": "/html/body/form/div/div[2]/input",
+                "button_key": "xpath",
+                "button_value": "/html/body/form/div/div[3]/input"
             },
             "category_name": {
                 "field_key": "class",
                 "field_value": "justify-content-start",
                 "category_key": "class",
                 "category_value": "ml-1"
+            },
+            "tags_n_paths":
+            {
+                "BVID": 53
             }
         },
         {
@@ -66,6 +70,10 @@
                 "field_value": "justify-content-start",
                 "category_key": "class",
                 "category_value": "ml-1"
+            },
+            "tags_n_paths":
+            {
+                "BVID": 51
             }
         }
     ],

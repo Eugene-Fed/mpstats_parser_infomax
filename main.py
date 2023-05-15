@@ -16,8 +16,10 @@ import re
 from argparse import ArgumentParser
 from tqdm import tqdm
 
-CATEGORY_COUNT_START = 100
-CATEGORY_COUNT_LIMIT = 105                                # about 8 500 items
+BABLO_BTN_ACCOUNT_ID = 0  # id of account in the settings
+MP_STATS_ACCOUNT_ID = 0  # id of account in the settings
+CATEGORY_COUNT_START = 103
+CATEGORY_COUNT_LIMIT = 112                                # about 8 500 items
 KEYWORD_COUNT_START = 0
 KEYWORD_COUNT_LIMIT = 15000                             # about 15 000 items
 KEYWORD_FREQ_LIMIT = 19999                              # Minimum keyword Frequency to parse statistics
@@ -30,8 +32,8 @@ KEYWORDS_MONTH_PATH = r"D:/Downloads/requests_month.csv"    # Monthly statistics
 KEYWORDS_WEEK_PATH = r"D:/Downloads/requests_week.csv"      # Weekly statistics download file from Wildberries
 CATEGORY_VALUE_PATH = r"D:/Downloads/category_volume.csv"   # Revenue file by category
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
-# OUTPUT_STAT = f'D:\\Downloads\\stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
-OUTPUT_STAT = f'stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_[]-{KEYWORD_COUNT_LIMIT}.csv'
+OUTPUT_STAT = f'D:/Downloads/stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
+# OUTPUT_STAT = f'stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_[]-{KEYWORD_COUNT_LIMIT}.csv'
 LOG_FILE = r'log.txt'
 CATEGORY_TEXT_TO_URL_PATTERN = r'\[.+\]$'                        # RegEx pattern to create URL
 PATTERN = re.compile(r'\[.+\]$')
@@ -43,7 +45,8 @@ STAT_FILE_HEADERS = ['Запрос', 'Частотность в мес. (WB)', '
                      '1 место, руб.', '2 место, руб.', '3 место, руб.', '4 место, руб.', '5 место, руб.',
                      'Объем продаж категории, руб (MP Stats)', 'Объем продаж по фразе, руб (MP Stats)',
                      'Путь к категории (MP Stats)']
-CATEGORY_FILE_HEADERS = ['ID', 'Путь категории', 'Объем продаж']
+# CATEGORY_FILE_HEADERS = ['ID', 'Путь категории', 'Объем продаж']
+CATEGORY_FILE_HEADERS = [0] * 3         # [0, 0, 0]
 
 
 def create_parser() -> ArgumentParser:
@@ -271,7 +274,7 @@ def update_keywords(settings, account, webdriver_dir=None, window_id=None, log_i
 
 
 def get_category_volume(category_index: int, settings=None, account=None,
-                        window_id=None, webdriver_dir=None, sleep=0) -> str:
+                        window_id=None, webdriver_dir=None, sleep=0, repeat=0, reload=False) -> str:
     """
 
     :param settings:
@@ -298,12 +301,14 @@ def get_category_volume(category_index: int, settings=None, account=None,
 
     # Search for block with Category name string
     category_field = bm.find_elements(element_type=settings['category_name']['field_key'],
-                                     element_name=settings['category_name']['field_value'],
-                                     sleep=sleep, repeat=2, window_id=window_id)    # class: 'justify-content-start'
+                                      element_name=settings['category_name']['field_value'],
+                                      sleep=sleep, repeat=repeat, window_id=window_id,
+                                      reload=reload)    # class: 'justify-content-start'
     if category_field:                      # If category exists, search included text element
         category_path = bm.find_elements(element_type=settings['category_name']['category_key'],
                                          element_name=settings['category_name']['category_value'],
-                                         sleep=0, repeat=0, element=category_field[0])  # class: 'ml-1'
+                                         sleep=0, repeat=0, element=category_field[0],
+                                         reload=reload)  # class: 'ml-1'
 
         category_path = re.sub(r"\s", "", category_path[1].text)         # delete spaces around slash character
         # categories[category_index] = [category_path]
@@ -313,16 +318,37 @@ def get_category_volume(category_index: int, settings=None, account=None,
         print(f'Category {category_index} not found')
         return
 
+    content_id = settings['tags_n_paths']['BVID']       # this ID is used for search content data block
     # Click 'Category' tab for open page with categories volume file
+
     bm.click_element(element_type='id',
-                     element_name='__BVID__51___BV_tab_button__',
-                     sleep=0,
-                     window_id=window_id)
+                     element_name=f'__BVID__{content_id}___BV_tab_button__',
+                     sleep=sleep,
+                     window_id=window_id,
+                     repeat=repeat,
+                     reload=reload)
+    '''
+    category_tab = bm.find_elements(element_type='id',
+                     element_name=f'__BVID__{content_id}___BV_tab_button__',
+                     sleep=sleep, repeat=repeat, window_id=window_id, reload=reload)[0]
+    if category_tab:        # with `bm.find_elements
+        bm.click_element(element_type='id',
+                         element_name=f'__BVID__{content_id}___BV_tab_button__',
+                         sleep=sleep,
+                         window_id=window_id)
+    else:
+        return
+    '''
 
     # TODO - rewrite to use it in settings
-    time.sleep(sleep)
-    cat_volume_xpath = r'//*[@id="__BVID__51"]/div/div[4]/div/div/div[2]/div[2]/div[3]/div[2]/div/div/div[1]/div[5]'
-    cat_volume_elements = bm.find_elements(element_type='xpath', element_name=cat_volume_xpath, window_id=window_id)
+    cat_volume_xpath = \
+        f'//*[@id="__BVID__{content_id}"]/div/div[4]/div/div/div[2]/div[2]/div[3]/div[2]/div/div/div[1]/div[5]'
+    cat_volume_elements = bm.find_elements(element_type='xpath',
+                                           element_name=cat_volume_xpath,
+                                           window_id=window_id,
+                                           sleep=sleep,
+                                           repeat=repeat,
+                                           reload=reload)
 
     if cat_volume_elements:             # `element.text` has format like `1 020 345 Р`
         cat_vol = int(''.join(re.findall(r'\d+', cat_volume_elements[0].text)))     # get number from format text
@@ -344,7 +370,7 @@ def get_category_volume(category_name: str, window_id: str, settings=None, sleep
 """
 
 
-def create_browser_window(settings: dict, accounts: dict, tab_ids={}) -> dict:
+def create_browser_window(settings: dict, accounts: dict, tab_ids={}, sleep=0) -> dict:
     """
     Create new browser window and log in to accounts
     :param settings: main settings from file
@@ -371,7 +397,7 @@ def create_browser_window(settings: dict, accounts: dict, tab_ids={}) -> dict:
     # Open and login `MP Stats` account
     tab_ids['mp_stats_cat_id'] = bm.add_tab('')
     bm.open_window(settings['mpstats'][accounts['mp_stats_id']]['urls']['login'])  # Open auth window for `MP Stats`
-    auth_to['mp_stats'](window_id=tab_ids['mp_stats_cat_id'])  # call of `mp_stats` Auth object
+    auth_to['mp_stats'](window_id=tab_ids['mp_stats_cat_id'], sleep=sleep)  # call of `mp_stats` Auth object
     # TODO get category path by id to create category volume url
     # Create url plug
     cat_volume_url = re.match(r'^.+\?', settings['mpstats'][accounts['mp_stats_id']]['urls']['category_volume']).group()
@@ -400,7 +426,6 @@ if __name__ == '__main__':
                   f'START at: {start_datetime.strftime(DATETIME_FORMAT)}\n')
         log.close()
 
-    # TODO - Rewrite to use `DOM Ready` factor instead of sleeping. FIX - it doesn't work!!! Use time.time.sleep()
     # Load files with settings
     auth_to = {}                # Collects authentication objects
     tab_ids = {}              # Collects browser tab IDs
@@ -409,28 +434,28 @@ if __name__ == '__main__':
     api_keys = fm.load_json(file=api_keys_file)
 
     # TODO - replace two variables with a dictionary in the following code
-    bablo_btn_account_id = 0                    # id of account in the settings
-    mp_stats_account_id = 1                     # id of account in the settings
-    accounts_ids = {'bablo_btn_id': bablo_btn_account_id, 'mp_stats_id': mp_stats_account_id}
+    accounts_ids = {'bablo_btn_id': BABLO_BTN_ACCOUNT_ID, 'mp_stats_id': MP_STATS_ACCOUNT_ID}
 
     # Create Authentication objects
-    auth_to['bablo_btn'] = bm.Auth(account=api_keys['bablo_btn']['accounts'][bablo_btn_account_id],
-                               login_data=settings['bablo_button'][bablo_btn_account_id]['login_data'])  # Auth object
-    auth_to['mp_stats'] = bm.Auth(account=api_keys['mp_stats']['accounts'][mp_stats_account_id],
-                                 login_data=settings['mpstats'][mp_stats_account_id]['login_data'])
+    auth_to['bablo_btn'] = bm.Auth(account=api_keys['bablo_btn']['accounts'][BABLO_BTN_ACCOUNT_ID],
+                                   login_data=settings['bablo_button'][BABLO_BTN_ACCOUNT_ID]['login_data'])
+    auth_to['mp_stats'] = bm.Auth(account=api_keys['mp_stats']['accounts'][MP_STATS_ACCOUNT_ID],
+                                  login_data=settings['mpstats'][MP_STATS_ACCOUNT_ID]['login_data'])
 
     # Open/Create category ID, Name, Volume matching file and load category volume dict
     try:
         with open(CATEGORY_VALUE_PATH, 'r', newline='', encoding='utf-8') as f:
             category_volume_reader = csv.reader(f, delimiter=',')
             category_volume =\
-                {cat_id: [name, volume] for cat_id, name, volume in category_volume_reader}
+                {int(cat_id): [name, int(volume)] for cat_id, name, volume in category_volume_reader}
+            print(f'Number of categories in file: {len(category_volume)}')
 
     except FileNotFoundError or FileExistsError as ex:
         print(ex)
         with open(CATEGORY_VALUE_PATH, 'w', newline='', encoding='utf-8') as f:
             category_volume_writer = csv.writer(f, dialect='excel')
             category_volume_writer.writerow(CATEGORY_FILE_HEADERS)
+            # category_volume_writer.writerow([])
         category_volume = {}                    # to collect Category id with Name and Volume
 
     except Exception as ex:
@@ -466,34 +491,42 @@ if __name__ == '__main__':
         try:
             bm = importlib.reload(bm)  # reload module before using
             tab_ids = create_browser_window(settings=settings, accounts=accounts_ids)
+            keyword_start_from =\
+                int(params.key_start) + start_keyword_id  # If process was broken we will start from last ID
 
             # ---------- GET CATEGORY VOLUME ----------
-            for cat_id in range(start_category_id, CATEGORY_COUNT_LIMIT):
-                if cat_id in category_volume: continue      #
-                cat_data = get_category_volume(category_index=cat_id, settings=settings['mpstats'][mp_stats_account_id],
-                                               window_id=tab_ids['mp_stats_cat_id'], sleep=5)
+            for cat_id in range(start_category_id, CATEGORY_COUNT_LIMIT+1):
+                if cat_id in category_volume: continue      # .keys()
+                cat_data = get_category_volume(category_index=cat_id, settings=settings['mpstats'][MP_STATS_ACCOUNT_ID],
+                                               window_id=tab_ids['mp_stats_cat_id'], sleep=3, repeat=7)
                 if cat_data:
                     """
                     cat_volume = get_category_volume(category_name=cat_data,
-                                                     settings=settings['mpstats'][mp_stats_account_id],
+                                                     settings=settings['mpstats'][MP_STATS_ACCOUNT_ID],
                                                      window_id=tab_ids['mp_stats_cat_volume'], sleep=3)
                     category_volume[cat_id] = [cat_data, cat_volume]
                     """
                     category_volume[cat_id] = cat_data
-                    print(category_volume[cat_id])
+                    # print(category_volume[cat_id])
+                    # print(f'cat_data: {cat_data}')
+                    with open(CATEGORY_VALUE_PATH, 'a', newline='', encoding='utf-8') as f:
+                        category_volume_writer = csv.writer(f, dialect='excel')
+                        category_file_row = [cat_id]       # create list of data to add in file
+                        category_file_row.extend(cat_data)      # reshape dict to list
+                        print(f'category_file_row len: {category_file_row}')
+                        category_volume_writer.writerow(category_file_row)
 
                 start_category_id += 1
 
             # ---------- GET KEYWORD STATISTICS ----------
             # TODO - TEMPORARY HIDDEN
-            start_from = int(params.key_start) + start_keyword_id     # If process was broken we will start from last ID
             """
-            for idx, (keyword, month_frequency) in enumerate(month_keywords[start_from : int(params.key_limit)]):
+            for idx, (keyword, month_frequency) in enumerate(month_keywords[keyword_start_from : int(params.key_limit)]):
                 bm.change_tab(tab_ids['bablo_btn_0'])
-                print(f'{start_from + 1 + idx} / {len(month_keywords)}')
+                print(f'{keyword_start_from + 1 + idx} / {len(month_keywords)}')
 
                 stat = get_keyword_stat(tab_ids['bablo_btn_0'], 'name', 'value', keyword=keyword,
-                                        settings=settings['bablo_button'][bablo_btn_account_id]['keywords_stat'],
+                                        settings=settings['bablo_button'][BABLO_BTN_ACCOUNT_ID]['keywords_stat'],
                                         sleep=int(params.wait), repeat=OTHER_ELEMENTS_TRIES)
 
                 # keyword, month_frequency = keyword_and_freq[0], keyword_and_freq[1]
@@ -509,7 +542,7 @@ if __name__ == '__main__':
                     # if cat_id in category_volume:
                     #     sales_volume = category_volume[cat_id][1]
                     # else:
-                    #     cat_data = get_category_volume(cat_id, settings=settings['mpstats'][mp_stats_account_id],
+                    #     cat_data = get_category_volume(cat_id, settings=settings['mpstats'][MP_STATS_ACCOUNT_ID],
                     #                                  window_id=tab_ids['mp_stats_cat_id'])
                     #     sales_volume = ''  # Volume of sales
 
@@ -526,7 +559,7 @@ if __name__ == '__main__':
                         with open(LOG_FILE, 'a', encoding='utf-8') as log:
                             # TODO - create log_file_writer() function
                             log.write(f'Un Login at: {datetime.now().strftime(DATETIME_FORMAT)}. '
-                                      f'Current Keyword ID: {start_from}\n')
+                                      f'Current Keyword ID: {keyword_start_from}\n')
                         break
 
                     # If category not found then `Bablo Button` hasn't data.
@@ -535,7 +568,7 @@ if __name__ == '__main__':
                 start_keyword_id += 1  # Remember element ID for the next slice of keywords list
             """
 
-            print(category_volume)
+            print(f'Number of categories in file: {len(category_volume)}')
             time.sleep(5)
             # break                                       # Exit from `While True` loop
         except Exception as total_exception:
@@ -543,7 +576,7 @@ if __name__ == '__main__':
             with open(LOG_FILE, 'a', encoding='utf-8') as log:
                 # TODO - create log_file_writer() function
                 log.write(f'Exception at: {datetime.now().strftime(DATETIME_FORMAT)}. '
-                          f'Current Keyword ID: {start_from+1}\n')
+                          f'Current Keyword ID: {keyword_start_from + 1}\n')
         finally:
             # pass
             try:
