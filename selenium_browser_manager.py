@@ -13,7 +13,7 @@ CHROME_PROFILE_NAME = r'Default'
 CHROME_PROFILE_PATH = r'C:\Users\eugen\AppData\Local\Google\Chrome\User Data'           # main
 WB_URL = r'https://seller.wildberries.ru/'
 # TIMEOUT = 15                          # Time to waiting of page load. But doesn't work
-SLEEP = 2
+SLEEP = 0
 REPEAT = 0
 
 
@@ -43,7 +43,7 @@ class Auth:
         :param account: Collects types and values of DOM-elements
         :param login_data: Collects account name and password
         :param key: Set keyboard key to push
-        :param skladchina: DEPRECATED - Set external account method for authentication
+        :param skladchina: Set external account method for authentication
         """
         self.account = account
         self.login_data = login_data
@@ -51,7 +51,7 @@ class Auth:
         self.skladchina = skladchina
 
     def __call__(self, window_id=None, element=None, sleep=0, submit_button=False):
-        if self.skladchina:     # TODO - deprecate this `if` because `skladchina` was been deprecated
+        if self.skladchina:
             input_elements = find_elements(element_type='class', element_name='input-form', window_id=window_id)
             acc_name = {
                 'element': input_elements[0],
@@ -76,6 +76,12 @@ class Auth:
                 'sleep': sleep,
                 'window_id': window_id
             }
+            # set_text(element=input_elements[0], element_type=self.settings['login_data']['name_key'],
+            #             element_name=self.settings['login_data']['name_value'], data=self.account['login'])
+            # set_text(element=input_elements[1], element_type=self.settings['login_data']['pass_key'],
+            #             element_name=self.settings['login_data']['pass_value'], data=self.account['pass'])
+            # click_element(element=input_elements[2], element_type=self.settings['login_data']['button_key'],
+            #                  element_name=self.settings['login_data']['button_value'])
 
         else:
             acc_name = {
@@ -185,8 +191,8 @@ def close_window(handler: str):
         print(ex)
 
 
-def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPEAT, element=None, window_id=None,
-                  reload=True):
+def find_elements(element_type: str, element_name: str,
+                  sleep=SLEEP, repeat=REPEAT, reload=False, element=None, window_id=None):
     """
     :param window_id: Window ID for manipulating. SHOULD TO BE FILLED IF `ELEMENT` IS EMPTY!!!
     :param element_type: Type of element for search
@@ -194,7 +200,6 @@ def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPE
     :param sleep: Time to wait in seconds
     :param repeat: DEPRECATED - Try to reload page to find element
     :param element: Web element to search any other elements in it
-    :param reload: If True - reload page before any `repeat` iteration
     :return: Found element
     """
     # TODO - Use Optional parameter `element` to searching
@@ -206,6 +211,7 @@ def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPE
         search_in = driver
 
     time.sleep(sleep)
+
     if element_type == 'id':
         elements_input = search_in.find_elements(By.ID, element_name)
     elif element_type == 'name':
@@ -231,8 +237,10 @@ def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPE
             return find_elements(element_type=element_type,
                                  element_name=element_name,
                                  repeat=repeat-1,
+                                 sleep=sleep,
                                  reload=reload,
-                                 sleep=sleep)
+                                 element=element,
+                                 window_id=window_id)
         else:
             print(f"Element '{element_type}' -> '{element_name}' not found")
             # elements_input = []
@@ -287,7 +295,7 @@ def set_text(element_type: str, element_name: str, data: str, sleep=SLEEP, eleme
 
 
 def click_element(element_type: str, element_name: str,
-                  sleep=SLEEP, window_id=None, element=None, reload=True, repeat=REPEAT):
+                  repeat=0, reload=False, sleep=SLEEP, window_id=None, element=None):
     """
     Manipulating with text input fields
     :param window_id: Window ID for manipulating
@@ -301,7 +309,7 @@ def click_element(element_type: str, element_name: str,
         if window_id:
             driver.switch_to.window(window_id)
         element_click = find_elements(element_type, element_name,
-                                      window_id=window_id, element=element, reload=reload, repeat=repeat, sleep=sleep)
+                                      window_id=window_id, element=element, repeat=repeat, reload=reload, sleep=sleep)
         if element_click:
             element_click[0].click()        # temporarily pick up only the first element
 
@@ -310,7 +318,8 @@ def click_element(element_type: str, element_name: str,
         print(ex)
 
 
-def click_key(element_type: str, element_name: str, key='enter', sleep=SLEEP, window_id=None):
+def click_key(element_type: str, element_name: str, key='enter',
+              repeat=0, reload=False, sleep=SLEEP, window_id=None, element=None):
     """
     Manipulating with text input fields
     :param window_id: Window ID for manipulating
@@ -324,7 +333,7 @@ def click_key(element_type: str, element_name: str, key='enter', sleep=SLEEP, wi
     try:
         if window_id:
             driver.switch_to.window(window_id)
-        element_click = find_elements(element_type, element_name)[0]
+        element_click = find_elements(element_type, element_name, sleep=sleep, repeat=repeat, reload=reload)[0]
         if key == 'enter':
             element_click.send_keys(Keys.ENTER)
         else:
