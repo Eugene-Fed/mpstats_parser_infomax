@@ -17,15 +17,15 @@ from argparse import ArgumentParser
 from tqdm import tqdm
 
 BABLO_BTN_ACCOUNT_ID = 0  # id of account in the settings
-MP_STATS_ACCOUNT_ID = 0  # id of account in the settings
-CATEGORY_COUNT_START = 103
-CATEGORY_COUNT_LIMIT = 112                                # about 8 500 items
+MP_STATS_ACCOUNT_ID = 1  # id of account in the settings
+CATEGORY_COUNT_START = 1                                 # 2920
+CATEGORY_COUNT_LIMIT = 8500                                # about 8 500 items
 KEYWORD_COUNT_START = 0
 KEYWORD_COUNT_LIMIT = 15000                             # about 15 000 items
 KEYWORD_FREQ_LIMIT = 19999                              # Minimum keyword Frequency to parse statistics
 KEYWORD_STATISTICS_WAIT = 3                             # Time in seconds to wait for the page to load
-KEYWORD_STATISTICS_TRIES = 5
-OTHER_ELEMENTS_TRIES = 2
+KEYWORD_STATISTICS_TRIES = 7
+OTHER_ELEMENTS_TRIES = 3
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Set the positions for which we will collect statistics (from 1st)
 # TODO - Rewrite to search for system `Downloads` directory
 KEYWORDS_MONTH_PATH = r"D:/Downloads/requests_month.csv"    # Monthly statistics download file from Wildberries
@@ -310,13 +310,11 @@ def get_category_volume(category_index: int, settings=None, account=None,
                                          sleep=0, repeat=0, element=category_field[0],
                                          reload=reload)  # class: 'ml-1'
 
-        category_path = re.sub(r"\s", "", category_path[1].text)         # delete spaces around slash character
-        # categories[category_index] = [category_path]
-        # print(f'Category index: {category_index + 1}\nPath 2: `{category_path}`')
-        # return category_path
+        # category_path = re.sub(r"\s", "", category_path[1].text)         # delete spaces around slash character
+        category_path = category_path[1].text
     else:
         print(f'Category {category_index} not found')
-        return
+        return ['', '']
 
     content_id = settings['tags_n_paths']['BVID']       # this ID is used for search content data block
     # Click 'Category' tab for open page with categories volume file
@@ -354,6 +352,8 @@ def get_category_volume(category_index: int, settings=None, account=None,
         cat_vol = int(''.join(re.findall(r'\d+', cat_volume_elements[0].text)))     # get number from format text
         # categories[category_index].append(cat_vol)
         return [category_path, cat_vol]  # TODO - maybe use tuple instead of list
+    else:
+        return [category_path, '']
 
 
 """
@@ -447,7 +447,7 @@ if __name__ == '__main__':
         with open(CATEGORY_VALUE_PATH, 'r', newline='', encoding='utf-8') as f:
             category_volume_reader = csv.reader(f, delimiter=',')
             category_volume =\
-                {int(cat_id): [name, int(volume)] for cat_id, name, volume in category_volume_reader}
+                {int(cat_id): [name, volume] for cat_id, name, volume in category_volume_reader}
             print(f'Number of categories in file: {len(category_volume)}')
 
     except FileNotFoundError or FileExistsError as ex:
@@ -496,9 +496,10 @@ if __name__ == '__main__':
 
             # ---------- GET CATEGORY VOLUME ----------
             for cat_id in range(start_category_id, CATEGORY_COUNT_LIMIT+1):
+                start_category_id = cat_id                  # when we start with not empty `category_volume.csv`
                 if cat_id in category_volume: continue      # .keys()
                 cat_data = get_category_volume(category_index=cat_id, settings=settings['mpstats'][MP_STATS_ACCOUNT_ID],
-                                               window_id=tab_ids['mp_stats_cat_id'], sleep=3, repeat=7)
+                                               window_id=tab_ids['mp_stats_cat_id'], sleep=3, repeat=5)
                 if cat_data:
                     """
                     cat_volume = get_category_volume(category_name=cat_data,
@@ -569,7 +570,7 @@ if __name__ == '__main__':
             """
 
             print(f'Number of categories in file: {len(category_volume)}')
-            time.sleep(5)
+            # time.sleep(5)
             # break                                       # Exit from `While True` loop
         except Exception as total_exception:
             print(total_exception)
