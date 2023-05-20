@@ -14,17 +14,16 @@ import time
 from datetime import datetime
 import re
 from argparse import ArgumentParser
-from tqdm import tqdm
 
 BABLO_BTN_ACCOUNT_ID = 0  # id of account in the settings
 MP_STATS_ACCOUNT_ID = 1  # id of account in the settings
 CATEGORY_COUNT_START = 1                                 # 2920
 CATEGORY_COUNT_LIMIT = 8500                                # about 8 500 items
-KEYWORD_COUNT_START = 0
-KEYWORD_COUNT_LIMIT = 14000                             # about 15 000 items
+KEYWORD_COUNT_START = 1
+KEYWORD_COUNT_LIMIT = 0                             # if `0` than non limited
 KEYWORD_FREQ_LIMIT = 19999                              # Minimum keyword Frequency to parse statistics
-STATISTICS_WAIT = 3                             # Time in seconds to wait for the page to load
-KEYWORD_STATISTICS_TRIES = 3
+STATISTICS_WAIT = 2                             # Time in seconds to wait for the page to load
+KEYWORD_STATISTICS_TRIES = 4
 CATEGORY_STATISTICS_TRIES = 7
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Set the positions for which we will collect statistics (from 1st)
 # TODO - Rewrite to search for system `Downloads` directory
@@ -32,8 +31,8 @@ KEYWORDS_MONTH_PATH = r"D:/Downloads/requests_month.csv"    # Monthly statistics
 KEYWORDS_WEEK_PATH = r"D:/Downloads/requests_week.csv"      # Weekly statistics download file from Wildberries
 CATEGORY_VALUE_PATH = r"D:/Downloads/category_volume.csv"   # Revenue file by category
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
-OUTPUT_STAT = f'D:/Downloads/stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
-# OUTPUT_STAT = f'stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_[]-{KEYWORD_COUNT_LIMIT}.csv'
+# output_stat_path = f'stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_[]-{KEYWORD_COUNT_LIMIT}.csv'
+# output_stat_path = f'D:/Downloads/stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
 LOG_FILE = r'log.txt'
 CATEGORY_TEXT_TO_URL_PATTERN = r'\[.+\]$'                        # RegEx pattern to create URL
 PATTERN = re.compile(r'\[.+\]$')
@@ -57,10 +56,11 @@ def create_parser() -> ArgumentParser:
     parser = ArgumentParser()
     parser.add_argument('-ks', '--key_start', default=KEYWORD_COUNT_START)
     parser.add_argument('-kl', '--key_limit', default=KEYWORD_COUNT_LIMIT)
-    parser.add_argument('-fl', '--freq_limit', default=KEYWORD_FREQ_LIMIT)
     parser.add_argument('-kt', '--key_tries', default=KEYWORD_STATISTICS_TRIES)
-    parser.add_argument('-ct', '--cat_tries', default=CATEGORY_STATISTICS_TRIES)
+    parser.add_argument('-fl', '--freq_limit', default=KEYWORD_FREQ_LIMIT)
+    parser.add_argument('-cs', '--cat_start', default=CATEGORY_STATISTICS_TRIES)
     parser.add_argument('-cl', '--cat_limit', default=CATEGORY_COUNT_LIMIT)
+    parser.add_argument('-ct', '--cat_tries', default=CATEGORY_STATISTICS_TRIES)
     parser.add_argument('-w', '--wait', default=STATISTICS_WAIT)
 
     return parser
@@ -237,7 +237,7 @@ def update_keywords(settings, account, webdriver_dir=None, window_id=None, log_i
         with open(LOG_FILE, 'a', encoding='utf-8', buffering=1) as log:  # log file
             log.write(f'\nSTART at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
 
-            with open(OUTPUT_STAT, 'w', newline='', encoding='utf-8', buffering=1) as stat:  # output statistic file
+            with open(output_stat_path, 'w', newline='', encoding='utf-8', buffering=1) as stat:  # output statistic file
                 output_stat_writer = csv.writer(stat, dialect='excel')
                 output_stat_writer.writerow(STAT_FILE_HEADERS)
 
@@ -378,7 +378,6 @@ def create_browser_window(settings: dict, accounts: dict, tab_ids={}, sleep=0) -
 
 
 if __name__ == '__main__':
-
     parser = create_parser()
     params = parser.parse_args(sys.argv[1:])
 
@@ -420,7 +419,8 @@ if __name__ == '__main__':
             category_volume_reader = csv.reader(f, delimiter=',')
             cat_id_name_volume =\
                 {int(cat_id): (name, volume) for cat_id, name, volume in category_volume_reader}
-            print(f'Number of categories in file: {len(cat_id_name_volume)}')
+            number_of_cat_volume = len(cat_id_name_volume) - 1
+            print(f'Number of categories in file: {number_of_cat_volume}')
 
     except FileNotFoundError or FileExistsError as ex:
         print(ex)
@@ -445,17 +445,26 @@ if __name__ == '__main__':
         wb_stat_reader = csv.reader(f, delimiter=',')
         week_keywords = {key: int(value) for key, value in wb_stat_reader}
 
+    # recalc key_limit with `0` to `non limit`
+    if 0 < int(params.key_limit) < len(month_keywords):
+        key_limit = int(params.key_limit)
+    else:
+        key_limit = len(month_keywords)
+
     # Create output data file with Headers
-    output_stat_name = OUTPUT_STAT.replace('[]', str(len(month_keywords)))
+    # TODO - make this path dynamic, not hardcoded
+    # output_stat_path = f'D:\\Downloads\\stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_{key_limit}-[].csv'
+    # output_stat_name = output_stat_path.replace('[]', str(len(month_keywords)))
+    output_stat_name = \
+        f'D:\\Downloads\\stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_{key_limit}-{len(month_keywords)}.csv'
     output_file = open(output_stat_name, 'w', newline='', encoding='utf-8', buffering=1)  # output statistic file
     output_stat_writer = csv.writer(output_file, dialect='excel')
     output_stat_writer.writerow(STAT_FILE_HEADERS)
 
-    start_keyword_id = 0        # save next keyword id to getting stat. starts from 0
-    start_category_id = CATEGORY_COUNT_START            # save next category id to getting stat. starts from 0
+    start_keyword_id = int(params.key_start)        # save next keyword id to getting stat. starts from 0
+    start_category_id = int(params.cat_start)            # save next category id to getting stat. starts from 0
 
-    while start_keyword_id < min(len(month_keywords), int(params.key_limit), KEYWORD_COUNT_LIMIT)\
-            and start_category_id < min(int(params.cat_limit), CATEGORY_COUNT_LIMIT):
+    while start_keyword_id <= key_limit:        # `len(month_keywords)` or `key_limit`
         """
         Create new browser window after any crash while current `start_keyword_id` less than total keyword count
         or keywords count limit from CONST or keywords count limit from startup parameters.
@@ -463,8 +472,8 @@ if __name__ == '__main__':
         try:
             bm = importlib.reload(bm)  # reload module before using
             tab_ids = create_browser_window(settings=settings, accounts=accounts_ids, sleep=int(params.wait))
-            keyword_start_from =\
-                int(params.key_start) + start_keyword_id  # If process was broken we will start from last ID
+            # keyword_start_from =\
+            #    int(params.key_start) + start_keyword_id - 1  # If process was broken we will start from last ID
 
             # ---------- GET CATEGORY VOLUME ----------
             '''
@@ -495,9 +504,16 @@ if __name__ == '__main__':
             # ---------- GET CATEGORY VOLUME ---------- END
 
             # ---------- GET KEYWORD STATISTICS ----------
-            for idx, (keyword, month_frequency) in enumerate(month_keywords[keyword_start_from:int(params.key_limit)]):
+            # for idx, (keyword, month_frequency) in \
+            #        enumerate(month_keywords[keyword_start_from:int(params.key_limit)]):
+            # for idx, (keyword, month_frequency) in \
+            #        enumerate(month_keywords[start_keyword_id-1:int(params.key_limit)]):
+
+            # `start_keyword_id` stars from `1`
+            for keyword, month_frequency in month_keywords[start_keyword_id - 1:key_limit]:
                 bm.change_tab(tab_ids['bablo_btn_0'])
-                print(f'{keyword_start_from + 1 + idx} / {len(month_keywords)}')
+                # print(f'{keyword_start_from + 1 + idx} / {len(month_keywords)}')
+                print(f'{start_keyword_id} / {key_limit}')
 
                 stat = get_keyword_stat(tab_ids['bablo_btn_0'], 'name', 'value', keyword=keyword,
                                         settings=settings['bablo_button'][BABLO_BTN_ACCOUNT_ID]['keywords_stat'],
@@ -547,7 +563,7 @@ if __name__ == '__main__':
                         with open(LOG_FILE, 'a', encoding='utf-8') as log:
                             # TODO - create log_file_writer() function
                             log.write(f'Un Login at: {datetime.now().strftime(DATETIME_FORMAT)}. '
-                                      f'Current Keyword ID: {keyword_start_from}\n')
+                                      f'Current Keyword ID: {start_keyword_id}\n')
                         break
 
                     # If category not found then `Bablo Button` hasn't data.
@@ -556,15 +572,14 @@ if __name__ == '__main__':
                 start_keyword_id += 1  # Remember element ID for the next slice of keywords list
             # ---------- GET KEYWORD STATISTICS ---------- END
 
-            print(f'Number of categories in file: {len(cat_id_name_volume)}')
-            # time.sleep(5)
+            print(f'Number of NEW categories in file: {len(cat_id_name_volume)-1-number_of_cat_volume}')
             # break                                       # Exit from `While True` loop
         except Exception as total_exception:
             print(total_exception)
             with open(LOG_FILE, 'a', encoding='utf-8') as log:
                 # TODO - create log_file_writer() function
                 log.write(f'Exception at: {datetime.now().strftime(DATETIME_FORMAT)}. '
-                          f'Current Keyword ID: {keyword_start_from + 1}\n')
+                          f'Current Keyword ID: {start_keyword_id}\n')
         finally:
             # pass
             try:
@@ -590,6 +605,7 @@ if __name__ == '__main__':
         # if total_exception:
         #     log.write(f'with Exception:\n{total_exception}')
         log.write(f'Total time: {work_time}, '
-                  f'Total keywords: {min(len(month_keywords), int(params.key_limit)-int(params.key_start))}\n'
+                  f'Total keywords: {key_limit}\n'
+                  f'Number of NEW categories in file: {len(cat_id_name_volume)-1-number_of_cat_volume}'
                   f'#########################\n')
         log.close()
