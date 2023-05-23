@@ -32,18 +32,22 @@
                 "keyword_volume": "https://analitika-wb-ozon.pro/seo/keyword/[keyword]"
             },
             "login_data": {
-                "name_key": "tag",
-                "name_value": "input",
-                "pass_key": "tag",
-                "pass_value": "input",
-                "button_key": "tag",
-                "button_value": "input"
+                "name_key": "xpath",
+                "name_value": "/html/body/form/div/div[1]/input",
+                "pass_key": "xpath",
+                "pass_value": "/html/body/form/div/div[2]/input",
+                "button_key": "xpath",
+                "button_value": "/html/body/form/div/div[3]/input"
             },
             "category_name": {
                 "field_key": "class",
                 "field_value": "justify-content-start",
                 "category_key": "class",
                 "category_value": "ml-1"
+            },
+            "tags_n_paths":
+            {
+                "BVID": 53
             }
         },
         {
@@ -52,7 +56,7 @@
                 "login": "https://mpstats.io/login",
                 "keywords": "https://mpstats.io/wb/tools/check-rates/result",
                 "category_id": "https://mpstats.io/wb/subject?id=[number]",
-                "category_volume": "https://mpstats.io/wb/category?url=[Ссылка_%20_на_%20_категорию %2F Подкатегория]",
+                "category_volume": "https://mpstats.io/wb/category?url=[Путь_%20_к_%20_категории %2F Подкатегория]",
                 "keyword_volume": "https://mpstats.io/seo/keyword/[keyword]"
             },
             "login_data": {
@@ -66,30 +70,18 @@
                 "field_value": "justify-content-start",
                 "category_key": "class",
                 "category_value": "ml-1"
+            },
+            "tags_n_paths":
+            {
+                "BVID": 51
             }
         }
     ],
-<<<<<<< HEAD
-    "bablo_url": {
-        "login": "https://www.knopka-bablo.online/login",
-        "keywords": "https://www.knopka-bablo.online/current-bets",
-        "login_data": {
-            "name_key": "name",
-            "name_value": "phoneNumber",
-            "pass_key": "name",
-            "pass_value": "password"
-        },
-        "keywords_stat": {
-            "prior_cat": {
-                "element_type": "class",
-                "element_name": "sc-hFRZIz"
-=======
     "bablo_button": [
         {
             "urls": {
                 "login": "https://www.knopka-bablo.online/login",
                 "keywords": "https://www.knopka-bablo.online/current-bets"
->>>>>>> dc02b851f71069ce6320f0c2ebd623d020018876
             },
             "login_data": {
                 "name_key": "name",
@@ -100,15 +92,15 @@
             "keywords_stat": {
                 "prior_cat": {
                     "element_type": "class",
-                    "element_name": "sc-iNKjke"
+                    "element_name": "sc-ilDYpA"
                 },
                 "keyword": {
                     "element_type": "class",
-                    "element_name": "sc-iKSnhI"
+                    "element_name": "sc-bTQVhO"
                 },
                 "last_requests": {
                     "element_type": "class",
-                    "element_name": "sc-kAfTll",
+                    "element_name": "sc-bFnbxT",
                     "element_value": "Последние 5 запросов"
                 },
                 "bids_table": {

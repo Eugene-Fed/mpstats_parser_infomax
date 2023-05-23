@@ -13,7 +13,7 @@ CHROME_PROFILE_NAME = r'Default'
 CHROME_PROFILE_PATH = r'C:\Users\eugen\AppData\Local\Google\Chrome\User Data'           # main
 WB_URL = r'https://seller.wildberries.ru/'
 # TIMEOUT = 15                          # Time to waiting of page load. But doesn't work
-SLEEP = 2
+SLEEP = 0
 REPEAT = 0
 
 
@@ -191,7 +191,8 @@ def close_window(handler: str):
         print(ex)
 
 
-def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPEAT, element=None, window_id=None):
+def find_elements(element_type: str, element_name: str,
+                  sleep=SLEEP, repeat=REPEAT, reload=False, element=None, window_id=None):
     """
     :param window_id: Window ID for manipulating. SHOULD TO BE FILLED IF `ELEMENT` IS EMPTY!!!
     :param element_type: Type of element for search
@@ -208,6 +209,8 @@ def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPE
         if window_id:
             driver.switch_to.window(window_id)
         search_in = driver
+
+    time.sleep(sleep)
 
     if element_type == 'id':
         elements_input = search_in.find_elements(By.ID, element_name)
@@ -228,11 +231,16 @@ def find_elements(element_type: str, element_name: str, sleep=SLEEP, repeat=REPE
 
     if not elements_input:
         if repeat:
-            reload_page(sleep=sleep)
+            if reload:
+                reload_page(sleep=sleep)
             # DAMN RECURSION CALL
             return find_elements(element_type=element_type,
                                  element_name=element_name,
-                                 repeat=repeat-1)
+                                 repeat=repeat-1,
+                                 sleep=sleep,
+                                 reload=reload,
+                                 element=element,
+                                 window_id=window_id)
         else:
             print(f"Element '{element_type}' -> '{element_name}' not found")
             # elements_input = []
@@ -286,7 +294,8 @@ def set_text(element_type: str, element_name: str, data: str, sleep=SLEEP, eleme
         print(ex)
 
 
-def click_element(element_type: str, element_name: str, sleep=SLEEP, window_id=None, element=None):
+def click_element(element_type: str, element_name: str,
+                  repeat=0, reload=False, sleep=SLEEP, window_id=None, element=None):
     """
     Manipulating with text input fields
     :param window_id: Window ID for manipulating
@@ -295,11 +304,12 @@ def click_element(element_type: str, element_name: str, sleep=SLEEP, window_id=N
     :param sleep: Sleeping time in seconds
     :return: None
     """
-    time.sleep(sleep)
+    # time.sleep(sleep)
     try:
         if window_id:
             driver.switch_to.window(window_id)
-        element_click = find_elements(element_type, element_name, window_id=window_id, element=element)
+        element_click = find_elements(element_type, element_name,
+                                      window_id=window_id, element=element, repeat=repeat, reload=reload, sleep=sleep)
         if element_click:
             element_click[0].click()        # temporarily pick up only the first element
 
@@ -308,7 +318,8 @@ def click_element(element_type: str, element_name: str, sleep=SLEEP, window_id=N
         print(ex)
 
 
-def click_key(element_type: str, element_name: str, key='enter', sleep=SLEEP, window_id=None):
+def click_key(element_type: str, element_name: str, key='enter',
+              repeat=0, reload=False, sleep=SLEEP, window_id=None, element=None):
     """
     Manipulating with text input fields
     :param window_id: Window ID for manipulating
@@ -322,7 +333,7 @@ def click_key(element_type: str, element_name: str, key='enter', sleep=SLEEP, wi
     try:
         if window_id:
             driver.switch_to.window(window_id)
-        element_click = find_elements(element_type, element_name)[0]
+        element_click = find_elements(element_type, element_name, sleep=sleep, repeat=repeat, reload=reload)[0]
         if key == 'enter':
             element_click.send_keys(Keys.ENTER)
         else:

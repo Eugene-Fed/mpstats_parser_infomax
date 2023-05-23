@@ -27,7 +27,10 @@ You can use number of parameters to start with script:
 `selenium.common.exceptions.StaleElementReferenceException:  
 Message: stale element reference: element is not attached to the page document`
 - [x] Make env parameter for "webdriver_dir"
-- [ ] Create function to open Category Value page
+- [x] ~~`get_category_volume` - write file downloader~~
+- [x] ~~Create function to open Category Value page~~
+- [x] Get category value and save it.
+- [x] Save whitespase in category Paths
 - [ ] Study `LambdaTest` library for `Selenium`
 - [ ] Get Category ID from `bablo button` from the bid for the first place
 - [ ] Create module to load Categories Value from file
