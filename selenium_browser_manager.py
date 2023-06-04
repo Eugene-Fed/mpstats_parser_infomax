@@ -43,14 +43,15 @@ class Auth:
         :param account: Collects types and values of DOM-elements
         :param login_data: Collects account name and password
         :param key: Set keyboard key to push
-        :param skladchina: Set external account method for authentication
+        :param skladchina: DEPRECATED Set external account method for authentication
         """
         self.account = account
         self.login_data = login_data
         self.key = key
-        self.skladchina = skladchina
+        # self.skladchina = skladchina
 
     def __call__(self, window_id=None, element=None, sleep=0, submit_button=False):
+        '''
         if self.skladchina:
             input_elements = find_elements(element_type='class', element_name='input-form', window_id=window_id)
             acc_name = {
@@ -84,51 +85,44 @@ class Auth:
             #                  element_name=self.settings['login_data']['button_value'])
 
         else:
-            acc_name = {
-                'element_type': self.login_data['name_key'],
-                'element_name': self.login_data['name_value'],
-                'data': self.account['login'],
+        '''
+        acc_name = {
+            'element_type': self.login_data['name_key'],
+            'element_name': self.login_data['name_value'],
+            'data': self.account['login'],
+            'sleep': sleep,
+            'window_id': window_id,
+            'element': element
+        }
+        acc_pass = {
+            'element_type': self.login_data['pass_key'],
+            'element_name': self.login_data['pass_value'],
+            'data': self.account['pass'],
+            'sleep': sleep,
+            'window_id': window_id,
+            'element': element
+        }
+        if 'button_key' in self.account:
+            submit_button = {
+                'element_type': self.account['button_key'],
+                'element_name': self.account['button_value'],
                 'sleep': sleep,
                 'window_id': window_id,
                 'element': element
             }
-            acc_pass = {
+        else:
+            submit_key = {
                 'element_type': self.login_data['pass_key'],
                 'element_name': self.login_data['pass_value'],
-                'data': self.account['pass'],
+                'key': self.key,
                 'sleep': sleep,
-                'window_id': window_id,
-                'element': element
+                'window_id': window_id
             }
-            if 'button_key' in self.account:
-                submit_button = {
-                    'element_type': self.account['button_key'],
-                    'element_name': self.account['button_value'],
-                    'sleep': sleep,
-                    'window_id': window_id,
-                    'element': element
-                }
-            else:
-                submit_key = {
-                    'element_type': self.login_data['pass_key'],
-                    'element_name': self.login_data['pass_value'],
-                    'key': self.key,
-                    'sleep': sleep,
-                    'window_id': window_id
-                }
-            # set_text(element_type=self.login_data['name_key'], element_name=self.login_data['name_value'],
-            #          data=self.account['login'], sleep=self.sleep, window_id=self.window_id,
-            #          element=self.element)  # Set name
-            # set_text(element_type=self.login_data['pass_key'], element_name=self.login_data['pass_value'],
-            #          data=self.account['pass'], sleep=self.sleep, window_id=self.window_id,
-            #          element=self.element)  # Set pass
-            # if self.submit_button:  # If given than click Button
-            #     click_element(element_type=self.account['button_key'], element_name=self.account['button_value'],
-            #                      sleep=self.sleep, window_id=self.window_id, element=self.element)
-            # else:  # Else press Key
-            #     click_key(element_type=self.login_data['pass_key'], element_name=self.login_data['pass_value'],
-            #                  key=self.key, sleep=self.sleep, window_id=self.window_id)
 
+        # TODO - unhardcode next `click_element()` function to close popup
+        # TODO - переполучить заново html-страницы, т.к. popup открывается "поверх" первоначального сайта
+        click_element(element_type='xpath',
+                      element_name=r'//*[@id="carrotquest-messenger-body-big-cont"]/div[1]', sleep=10)    # Close popup
         set_text(**acc_name)  # Set name
         set_text(**acc_pass)  # Set pass
         if submit_button:  # If Submit button element is given
@@ -137,13 +131,29 @@ class Auth:
             click_key(**submit_key)
 
 
+def close_popup(element_type='', element_name='', element=None, sleep=0):
+    # TODO Create universal popup closing method
+    """
+
+    :param element_type:
+    :param element_name:
+    :param element:
+    :param sleep:
+    :return:
+    """
+    click_element(element_type=element_type, element_name=element_name, sleep=sleep, element=element)
+
+
 class BrowserTab:
     # TODO - create a Class to create and manage browser tabs with on-demand authentication
-    def __init__(self):
-        pass
+    def __init__(self, window_id):
+        self.window_id = window_id
+
+    def __call__(self, *args, **kwargs):
+        change_tab(window_id=self.window_id)
 
 
-def open_window(url: str, sleep=SLEEP) -> str:
+def create_window(url: str, sleep=SLEEP) -> str:
     """
     Open browser window and return it'd ID
     :param url: Gets url to open window
@@ -181,7 +191,7 @@ def change_tab(window_id: str) -> str:
     return driver.current_window_handle
 
 
-def close_window(handler: str):
+def destroy_window(handler: str):
     try:
         driver.switch_to.window(handler)
         driver.close()
@@ -346,7 +356,7 @@ def click_key(element_type: str, element_name: str, key='enter',
 
 if __name__ == '__main__':
     # TODO - clear it! Just for test
-    google_window = open_window('https://google.com', sleep=3)  # Open auth window for `MP Stats`
+    google_window = create_window('https://google.com', sleep=3)  # Open auth window for `MP Stats`
     driver.execute_script("window.open('https://ya.ru');")
     # windows_before = driver.current_window_handle
     # driver.switch_to.new_window()     # An alternate
@@ -356,6 +366,6 @@ if __name__ == '__main__':
     driver.switch_to.window(google_window)
     time.sleep(3)
     print(f'{google_window}\n{driver.window_handles}')
-    close_window(driver.window_handles[1])
+    destroy_window(driver.window_handles[1])
     time.sleep(3)
-    close_window(google_window)
+    destroy_window(google_window)

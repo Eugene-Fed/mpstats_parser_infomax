@@ -71,7 +71,7 @@ def create_parser() -> ArgumentParser:
 def log_in(account: dict, login_data: dict, sleep=0, key='enter',
            element=None, window_id=None, submit_button=False, skladchina=False) -> None:
     """
-    Function to Log in
+    DEPRECATED Function to Log in
     :param window_id: Window object from Selenium
     :param account: Login data from api-keys, name and login
     :param login_data: Settings for searching text fields
@@ -79,6 +79,7 @@ def log_in(account: dict, login_data: dict, sleep=0, key='enter',
     :return: None
     """
     # TODO - deprecate `skladchina`
+    '''
     if skladchina:
         input_elements = bm.find_elements(element_type='class', element_name='input-form', window_id=window_id)
         bm.set_text(element=input_elements[0], element_type=settings['login_data']['name_key'],
@@ -88,16 +89,17 @@ def log_in(account: dict, login_data: dict, sleep=0, key='enter',
         bm.click_element(element=input_elements[2], element_type=settings['login_data']['button_key'],
                          element_name=settings['login_data']['button_value'])
     else:
-        bm.set_text(element_type=login_data['name_key'], element_name=login_data['name_value'],
-                    data=account['login'], sleep=sleep, window_id=window_id, element=element)   # Set name
-        bm.set_text(element_type=login_data['pass_key'], element_name=login_data['pass_value'],
-                    data=account['pass'], sleep=sleep, window_id=window_id, element=element)    # Set pass
-        if submit_button:                                                                       # If given than click Button
-            bm.click_element(element_type=account['button_key'], element_name=account['button_value'],
-                             sleep=sleep, window_id=window_id, element=element)
-        else:                                                                           # Else press Key
-            bm.click_key(element_type=login_data['pass_key'], element_name=login_data['pass_value'],
-                         key=key, sleep=sleep, window_id=window_id)
+    '''
+    bm.set_text(element_type=login_data['name_key'], element_name=login_data['name_value'],
+                data=account['login'], sleep=sleep, window_id=window_id, element=element)   # Set name
+    bm.set_text(element_type=login_data['pass_key'], element_name=login_data['pass_value'],
+                data=account['pass'], sleep=sleep, window_id=window_id, element=element)    # Set pass
+    if submit_button:                                                                       # If given than click Button
+        bm.click_element(element_type=account['button_key'], element_name=account['button_value'],
+                         sleep=sleep, window_id=window_id, element=element)
+    else:                                                                           # Else press Key
+        bm.click_key(element_type=login_data['pass_key'], element_name=login_data['pass_value'],
+                     key=key, sleep=sleep, window_id=window_id)
 
 
 def parse_bids_table(window_id: str, element_type: str, element_name: str, sleep=0,
@@ -215,11 +217,11 @@ def get_category_volume(category_index: int, settings=None, account=None,
 
     if window_id:       # if we created new tab before use `get_category_volume` then change it
         bm.change_tab(window_id)
-        bm.open_window(category_id_url, sleep=0)
+        bm.create_window(category_id_url, sleep=0)
     else:
         if webdriver_dir:                       # When we use in separately - create new window. Else - use window_id
             bm.DRIVER_PATH = webdriver_dir
-            window_id = bm.open_window(category_id_url, sleep=0)    # We don't use this `window_id`
+            window_id = bm.create_window(category_id_url, sleep=0)    # We don't use this `window_id`
         else:
             print('`window_id` and `webdriver_dir` not set')
             return
@@ -277,19 +279,19 @@ def create_browser_window(settings: dict, accounts: dict, tab_ids={}, sleep=0) -
     # Create Main browser window
     # TODO - rewrite to use autoload webdriver library
     bm.DRIVER_PATH = settings['webdriver_dir']
-    tab_ids['main'] = bm.open_window('https://google.com')
+    tab_ids['main'] = bm.create_window('https://google.com')
 
     # Open and login to `Bablo Button` account
     tab_ids['bablo_btn_0'] = bm.add_tab('')
-    bm.open_window(settings['bablo_button'][accounts['bablo_btn_id']]['urls']['login'])
+    bm.create_window(settings['bablo_button'][accounts['bablo_btn_id']]['urls']['login'])
     auth_to['bablo_btn'](window_id=tab_ids['bablo_btn_0'], sleep=sleep)  # call of `bablo_btn` Auth object
 
     # Go to keywords stat page
-    bm.open_window(settings['bablo_button'][accounts['bablo_btn_id']]['urls']['keywords'], sleep=sleep)
+    bm.create_window(settings['bablo_button'][accounts['bablo_btn_id']]['urls']['keywords'], sleep=sleep)
 
     # Open and login `MP Stats` account
     tab_ids['mp_stats_cat_id'] = bm.add_tab('')
-    bm.open_window(settings['mpstats'][accounts['mp_stats_id']]['urls']['login'])  # Open auth window for `MP Stats`
+    bm.create_window(settings['mpstats'][accounts['mp_stats_id']]['urls']['login'])  # Open auth window for `MP Stats`
     auth_to['mp_stats'](window_id=tab_ids['mp_stats_cat_id'], sleep=sleep)  # call of `mp_stats` Auth object
 
     # Create url plug
@@ -387,125 +389,130 @@ if __name__ == '__main__':
     start_keyword_id = int(params.key_start)        # save next keyword id to getting stat. starts from 0
     start_category_id = int(params.cat_start)            # save next category id to getting stat. starts from 0
 
-    while start_keyword_id <= key_limit:        # `len(month_keywords)` or `key_limit`
-        """
-        Create new browser window after any crash while current `start_keyword_id` less than total keyword count
-        or keywords count limit from CONST or keywords count limit from startup parameters.
-        """
-        try:
-            bm = importlib.reload(bm)  # reload module before using
-            tab_ids = create_browser_window(settings=settings, accounts=accounts_ids, sleep=int(params.wait))
-            # keyword_start_from =\
-            #    int(params.key_start) + start_keyword_id - 1  # If process was broken we will start from last ID
-
-            # ---------- GET KEYWORD STATISTICS ----------
-            # for idx, (keyword, month_frequency) in \
-            #        enumerate(month_keywords[keyword_start_from:int(params.key_limit)]):
-            # for idx, (keyword, month_frequency) in \
-            #        enumerate(month_keywords[start_keyword_id-1:int(params.key_limit)]):
-
-            # `start_keyword_id` stars from `1`
-            for keyword, month_frequency in month_keywords[start_keyword_id - 1:key_limit]:
-                bm.change_tab(tab_ids['bablo_btn_0'])
-                # print(f'{keyword_start_from + 1 + idx} / {len(month_keywords)}')
-                print(f'{start_keyword_id} / {key_limit}')
-
-                stat = get_keyword_stat(tab_ids['bablo_btn_0'], 'name', 'value', keyword=keyword,
-                                        settings=settings['bablo_button'][BABLO_BTN_ACCOUNT_ID]['keywords_stat'],
-                                        sleep=int(params.wait), repeat=int(params.key_tries))
-
-                # keyword, month_frequency = keyword_and_freq[0], keyword_and_freq[1]
-                week_frequency = week_keywords.pop(keyword, '')  # получаем значение недельной частотности
-
-                # Если нашли элемент со статистикой категории, тогда сохраняем все прочие данные в таблицу
-                cat_volume = ''
-                if stat['categories']:
-                    cat_id = int(re.search(r'\d+', stat['categories'][0]).group())    # Get the first (main) category ID
-                    # Get Name and sales Volume for Category
-                    # TODO - TEMPORARY HIDDEN
-                    # cat_data, cat_volume = cat_id_name_volume.get(cat_id, default=('', ''))      # TODO solve problem
-                    if cat_id in cat_id_name_volume:
-                        # cat_id_name_volume = {int(cat_id): (str(cat_path), int(cat_volume))}
-                        cat_name, cat_volume = cat_id_name_volume[cat_id]
-                    else:
-                        cat_name, cat_volume = get_category_volume(cat_id,
-                                                                   settings=settings['mpstats'][MP_STATS_ACCOUNT_ID],
-                                                                   window_id=tab_ids['mp_stats_cat_id'],
-                                                                   sleep=int(params.wait),
-                                                                   repeat=int(params.cat_tries))
-                        # append new category data into dict
-                        cat_id_name_volume[cat_id] = (cat_name, cat_volume)
-
-                        # add new category data into file
-                        with open(CATEGORY_VALUE_PATH, 'a', newline='', encoding='utf-8') as f:
-                            category_volume_writer = csv.writer(f, dialect='excel')
-                            category_file_row = [cat_id, cat_name, cat_volume]  # create list of data to add in file
-                            # category_file_row.extend(cat_data)  # reshape dict to list
-                            print(f'category_file_row len: {category_file_row}')
-                            category_volume_writer.writerow(category_file_row)
-
-                    bids = [x[1] for x in stat['bids']]  # Required bids
-                    # output_stats = [keyword, month_frequency, week_frequency, '', '', stat['categories'][0]]
-                    output_stats = [keyword, month_frequency, week_frequency, '', '', cat_name]
-                    output_stats.extend(bids)
-                    output_stats.extend([cat_volume, '', cat_id])
-                    output_stat_writer.writerow(output_stats)
-                else:
-                    # TODO - use `type` and `name` from settings instead of hardcoded text or use current page url
-                    # if `login` page - relog in
-                    if bm.find_elements(element_type='name', element_name='password'):
-                        print(f"Un login at: {datetime.now()}")
-                        with open(LOG_FILE, 'a', encoding='utf-8') as log:
-                            # TODO - create log_file_writer() function
-                            log.write(f'Un Login at: {datetime.now().strftime(DATETIME_FORMAT)}. '
-                                      f'Current Keyword ID: {start_keyword_id}\n')
-                        break
-
-                    # If category not found then `Bablo Button` hasn't data.
-                    output_stat_writer.writerow([keyword, month_frequency, week_frequency])
-                print(stat)
-                start_keyword_id += 1  # Remember element ID for the next slice of keywords list
-
-                # Reload page for every 500 responses
-                if start_keyword_id // int(params.reload_window) == start_keyword_id / int(params.reload_window):
-                    for tab_id in tab_ids.values():
-                        bm.close_window(handler=tab_id)
-            # ---------- GET KEYWORD STATISTICS ---------- END
-
-            print(f'Number of NEW categories in file: {len(cat_id_name_volume)-1-number_of_cat_volume}')
-            # break                                       # Exit from `While True` loop
-        except Exception as total_exception:
-            print(total_exception)
-            with open(LOG_FILE, 'a', encoding='utf-8') as log:
-                # TODO - create log_file_writer() function
-                log.write(f'Exception at: {datetime.now().strftime(DATETIME_FORMAT)}. '
-                          f'Current Keyword ID: {start_keyword_id}\n')
-        finally:
-            # pass
-            try:
-                bm.close_window(tab_ids['main'])  # Stop browser
-            except Exception as ex:
-                print(ex)
-                # break                                       # Exit from `While True` loop
-
-    output_file.close()                         # Close output file
-
-    finish_datetime = datetime.now()
-    work_time = finish_datetime - start_datetime
-    # TODO - create log_file_writer() function
     try:
-        log = open(LOG_FILE, 'a', encoding='utf-8')  # Append date into exists `log` file
-    except FileNotFoundError or FileExistsError as e:
-        print(e)
-        log = open(LOG_FILE, 'w', encoding='utf-8')  # Create `log` file
-    except Exception as e:
-        print(e)
+        while start_keyword_id <= key_limit:        # `len(month_keywords)` or `key_limit`
+            """
+            Create new browser window after any crash while current `start_keyword_id` less than total keyword count
+            or keywords count limit from CONST or keywords count limit from startup parameters.
+            """
+            try:
+                bm = importlib.reload(bm)  # reload module before using
+                tab_ids = create_browser_window(settings=settings, accounts=accounts_ids, sleep=int(params.wait))
+                # keyword_start_from =\
+                #    int(params.key_start) + start_keyword_id - 1  # If process was broken we will start from last ID
+
+                # ---------- GET KEYWORD STATISTICS ----------
+                # for idx, (keyword, month_frequency) in \
+                #        enumerate(month_keywords[keyword_start_from:int(params.key_limit)]):
+                # for idx, (keyword, month_frequency) in \
+                #        enumerate(month_keywords[start_keyword_id-1:int(params.key_limit)]):
+
+                # `start_keyword_id` stars from `1`
+                for keyword, month_frequency in month_keywords[start_keyword_id - 1:key_limit]:
+                    bm.change_tab(tab_ids['bablo_btn_0'])
+                    # print(f'{keyword_start_from + 1 + idx} / {len(month_keywords)}')
+                    print(f'{start_keyword_id} / {key_limit}')
+
+                    stat = get_keyword_stat(tab_ids['bablo_btn_0'], 'name', 'value', keyword=keyword,
+                                            settings=settings['bablo_button'][BABLO_BTN_ACCOUNT_ID]['keywords_stat'],
+                                            sleep=int(params.wait), repeat=int(params.key_tries))
+
+                    # keyword, month_frequency = keyword_and_freq[0], keyword_and_freq[1]
+                    week_frequency = week_keywords.pop(keyword, '')  # получаем значение недельной частотности
+
+                    # Если нашли элемент со статистикой категории, тогда сохраняем все прочие данные в таблицу
+                    cat_volume = ''
+                    if stat['categories']:
+                        cat_id = int(re.search(r'\d+', stat['categories'][0]).group())    # Get the first (main) category ID
+                        # Get Name and sales Volume for Category
+                        # TODO - TEMPORARY HIDDEN
+                        # cat_data, cat_volume = cat_id_name_volume.get(cat_id, default=('', ''))      # TODO solve problem
+                        if cat_id in cat_id_name_volume:
+                            # cat_id_name_volume = {int(cat_id): (str(cat_path), int(cat_volume))}
+                            cat_name, cat_volume = cat_id_name_volume[cat_id]
+                        else:
+                            cat_name, cat_volume = get_category_volume(cat_id,
+                                                                       settings=settings['mpstats'][MP_STATS_ACCOUNT_ID],
+                                                                       window_id=tab_ids['mp_stats_cat_id'],
+                                                                       sleep=int(params.wait),
+                                                                       repeat=int(params.cat_tries))
+                            # append new category data into dict
+                            cat_id_name_volume[cat_id] = (cat_name, cat_volume)
+
+                            # add new category data into file
+                            with open(CATEGORY_VALUE_PATH, 'a', newline='', encoding='utf-8') as f:
+                                category_volume_writer = csv.writer(f, dialect='excel')
+                                category_file_row = [cat_id, cat_name, cat_volume]  # create list of data to add in file
+                                # category_file_row.extend(cat_data)  # reshape dict to list
+                                print(f'category_file_row len: {category_file_row}')
+                                category_volume_writer.writerow(category_file_row)
+
+                        bids = [x[1] for x in stat['bids']]  # Required bids
+                        # output_stats = [keyword, month_frequency, week_frequency, '', '', stat['categories'][0]]
+                        output_stats = [keyword, month_frequency, week_frequency, '', '', cat_name]
+                        output_stats.extend(bids)
+                        output_stats.extend([cat_volume, '', cat_id])
+                        output_stat_writer.writerow(output_stats)
+                    else:
+                        # TODO - use `type` and `name` from settings instead of hardcoded text or use current page url
+                        # if `login` page - relog in
+                        if bm.find_elements(element_type='name', element_name='password'):
+                            print(f"Un login at: {datetime.now()}")
+                            with open(LOG_FILE, 'a', encoding='utf-8') as log:
+                                # TODO - create log_file_writer() function
+                                log.write(f'Un Login at: {datetime.now().strftime(DATETIME_FORMAT)}. '
+                                          f'Current Keyword ID: {start_keyword_id}\n')
+                            break
+
+                        # If category not found then `Bablo Button` hasn't data.
+                        output_stat_writer.writerow([keyword, month_frequency, week_frequency])
+                    print(stat)
+                    start_keyword_id += 1  # Remember element ID for the next slice of keywords list
+
+                    # Reload page for every 500 responses
+                    if start_keyword_id // int(params.reload_window) == start_keyword_id / int(params.reload_window):
+                        for tab_id in tab_ids.values():
+                            bm.close_window(handler=tab_id)
+                # ---------- GET KEYWORD STATISTICS ---------- END
+
+                print(f'Number of NEW categories in file: {len(cat_id_name_volume)-1-number_of_cat_volume}')
+                # break                                       # Exit from `While True` loop
+            except Exception as total_exception:
+                print(total_exception)
+                with open(LOG_FILE, 'a', encoding='utf-8') as log:
+                    # TODO - create log_file_writer() function
+                    log.write(f'Exception at: {datetime.now().strftime(DATETIME_FORMAT)}. '
+                              f'Current Keyword ID: {start_keyword_id}\n')
+            finally:
+                # pass
+                try:
+                    bm.destroy_window(tab_ids['main'])  # Stop browser
+                except Exception as ex:
+                    print(ex)
+                    # break                                       # Exit from `While True` loop
+
+    except Exception as main_loop_exception:
+        print(f'EXCEPTION: {main_loop_exception}')
+
     finally:
-        log.write(f'FINISH at: {finish_datetime.strftime(DATETIME_FORMAT)}\n')
-        # if total_exception:
-        #     log.write(f'with Exception:\n{total_exception}')
-        log.write(f'Total time: {work_time}, '
-                  f'Total keywords: {key_limit}\n'
-                  f'Number of NEW categories in file: {len(cat_id_name_volume)-1-number_of_cat_volume}'
-                  f'#########################\n')
-        log.close()
+        output_file.close()                         # Close output file
+
+        finish_datetime = datetime.now()
+        work_time = finish_datetime - start_datetime
+        # TODO - create log_file_writer() function
+        try:
+            log = open(LOG_FILE, 'a', encoding='utf-8')  # Append date into exists `log` file
+        except FileNotFoundError or FileExistsError as e:
+            print(e)
+            log = open(LOG_FILE, 'w', encoding='utf-8')  # Create `log` file
+        except Exception as e:
+            print(e)
+        finally:
+            log.write(f'FINISH at: {finish_datetime.strftime(DATETIME_FORMAT)}\n')
+            # if total_exception:
+            #     log.write(f'with Exception:\n{total_exception}')
+            log.write(f'Total time: {work_time}, '
+                      f'Total keywords: {key_limit}\n'
+                      f'Number of NEW categories in file: {len(cat_id_name_volume)-1-number_of_cat_volume}\n'
+                      f'#########################\n')
+            log.close()
