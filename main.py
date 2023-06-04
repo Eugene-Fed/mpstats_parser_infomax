@@ -26,6 +26,7 @@ STATISTICS_WAIT = 2                             # Time in seconds to wait for th
 KEYWORD_STATISTICS_TRIES = 4
 CATEGORY_STATISTICS_TRIES = 7
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Set the positions for which we will collect statistics (from 1st)
+RELOAD_WINDOW = 500                               # Промежуточная перезагрузка страницы на случай непредвиденных проблем
 # TODO - Rewrite to search for system `Downloads` directory
 KEYWORDS_MONTH_PATH = r"D:/Downloads/requests_month.csv"    # Monthly statistics download file from Wildberries
 KEYWORDS_WEEK_PATH = r"D:/Downloads/requests_week.csv"      # Weekly statistics download file from Wildberries
@@ -62,6 +63,7 @@ def create_parser() -> ArgumentParser:
     parser.add_argument('-cl', '--cat_limit', default=CATEGORY_COUNT_LIMIT)
     parser.add_argument('-ct', '--cat_tries', default=CATEGORY_STATISTICS_TRIES)
     parser.add_argument('-w', '--wait', default=STATISTICS_WAIT)
+    parser.add_argument('-r', '--reload_window', default=RELOAD_WINDOW)
 
     return parser
 
@@ -178,10 +180,6 @@ def get_keyword_stat(window_id: str, element_type: str, element_name: str, keywo
                                        window_id=window_id)
             if cat_div:
                 categories = cat_div[0].text.split('\n')        # if `Prior categories` element not empty get categories
-                # bids = parse_bids_table(window_id=window_id,
-                #                         element_type=settings['bids_table']['element_type'],
-                #                         element_name=settings['bids_table']['element_name'])  # get Bids
-                # break
             else:
                 categories.append(bids[0][2])           # get category ID from bids table
             break
@@ -198,83 +196,6 @@ def get_keyword_stat(window_id: str, element_type: str, element_name: str, keywo
                                 keyword=keyword, settings=settings, sleep=sleep, repeat=repeat-1)
     else:
         return {'bids': bids, 'categories': categories}
-
-
-def update_keywords(settings, account, webdriver_dir=None, window_id=None, log_it_in=True) -> None:
-    """
-    DEPRECATED
-    :param settings:
-    :param account:
-    :param webdriver_dir:
-    :param window_id:
-    :param log_it_in:
-    :return:
-    """
-    '''
-    if window_id:       # if we created new tab before then change it
-        bm.change_tab(window_id)
-    # keywords_week = {}
-    # Создаем словарь всех значений для недельной частотности ключей
-    with open(KEYWORDS_WEEK_PATH, 'r', newline='', encoding='utf-8') as f:
-        wb_stat_reader = csv.reader(f, delimiter=',')
-        keywords_week = {key: f'{int(value):,}'.replace(',', '') for key, value in wb_stat_reader}
-
-    # Load settings to variables
-    if webdriver_dir:
-        bm.DRIVER_PATH = webdriver_dir
-
-    # TODO: Rewrite to log in before using `update_keywords` fucntion instead of setting `log_in` flag
-    if log_it_in:
-        window_id = bm.open_window(settings['login'])  # open window with `bablo button`
-        log_in(window_id=window_id, account=account, login_data=settings['login_data'])  # log in at `Bablo Button`
-
-    # Open keyword stat page
-    bm.open_window(settings['keywords'], sleep=1)
-    with open(KEYWORDS_MONTH_PATH, 'r', newline='', encoding='utf-8') as f:
-        i = 0
-        wb_stat_reader = csv.reader(f, delimiter=',')  # open wildberries data file
-
-        with open(LOG_FILE, 'a', encoding='utf-8', buffering=1) as log:  # log file
-            log.write(f'\nSTART at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
-
-            with open(output_stat_path, 'w', newline='', encoding='utf-8', buffering=1) as stat:  # output statistic file
-                output_stat_writer = csv.writer(stat, dialect='excel')
-                output_stat_writer.writerow(STAT_FILE_HEADERS)
-
-                for raw in wb_stat_reader:
-                    if not raw:
-                        continue
-                    if i < KEYWORD_COUNT_LIMIT:
-                        print(f'{i + 1} / {KEYWORD_COUNT_LIMIT}')
-                        stat = get_keyword_stat(window_id, 'name', 'value', raw[0],
-                                                settings=settings['keywords_stat'],
-                                                sleep=STATISTICS_WAIT)
-                        # with open(LOG_FILE, 'a', encoding='utf-8') as log:
-                        keyword, month_frequency = raw[0], f'{int(raw[1]):,}'.replace(',', ' ')
-                        week_frequency = keywords_week.pop(keyword, '')  # получаем значение недельной частотности
-                        # log.write(f'\n"{keyword}" - {month_frequency}\n{stat}')
-
-                        # Если нашли элемент со статистикой категории, тогда сохраняем все прочие данные в таблицу
-                        if stat['categories']:
-                            bids = [x[1] for x in stat['bids']]  # Required bids
-                            sales_volume = ''  # Volume of sales
-                            output_stats = [keyword, month_frequency, week_frequency, '', '', stat['categories'][0]]
-                            output_stats.extend(bids)
-                            output_stats.append(sales_volume)     #
-                            output_stat_writer.writerow(output_stats)
-                        else:
-                            # Если категория не обнаружена, значит в `Кнопке Бабло отсутствуют данные`
-                            output_stat_writer.writerow([keyword, month_frequency, week_frequency])
-                        print(stat)
-                    else:
-                        break
-                    i += 1
-
-            log.write(f'\nEND at: {time.strftime("%H:%M:%S", time.localtime())}\n#########################')
-
-    # time.sleep(1)
-    # bm.close_window(window_id)
-    '''
 
 
 def get_category_volume(category_index: int, settings=None, account=None,
@@ -448,6 +369,8 @@ if __name__ == '__main__':
     # recalc key_limit with `0` to `non limit`
     if 0 < int(params.key_limit) < len(month_keywords):
         key_limit = int(params.key_limit)
+    elif 0 < settings['constants']['KEYWORD_COUNT_LIMIT'] < len(month_keywords):
+        key_limit = settings['constants']['KEYWORD_COUNT_LIMIT']
     else:
         key_limit = len(month_keywords)
 
@@ -474,34 +397,6 @@ if __name__ == '__main__':
             tab_ids = create_browser_window(settings=settings, accounts=accounts_ids, sleep=int(params.wait))
             # keyword_start_from =\
             #    int(params.key_start) + start_keyword_id - 1  # If process was broken we will start from last ID
-
-            # ---------- GET CATEGORY VOLUME ----------
-            '''
-            for cat_id in range(start_category_id, CATEGORY_COUNT_LIMIT+1):
-                start_category_id = cat_id                  # when we start with not empty `cat_id_name_volume.csv`
-                if cat_id in cat_id_name_volume: continue      # .keys()
-                cat_data = get_category_volume(category_index=cat_id, settings=settings['mpstats'][MP_STATS_ACCOUNT_ID],
-                                               window_id=tab_ids['mp_stats_cat_id'], sleep=3, repeat=5)
-                if cat_data:
-                    """
-                    cat_volume = get_category_volume(category_name=cat_data,
-                                                     settings=settings['mpstats'][MP_STATS_ACCOUNT_ID],
-                                                     window_id=tab_ids['mp_stats_cat_volume'], sleep=3)
-                    cat_id_name_volume[cat_id] = [cat_data, cat_volume]
-                    """
-                    cat_id_name_volume[cat_id] = cat_data
-                    # print(cat_id_name_volume[cat_id])
-                    # print(f'cat_data: {cat_data}')
-                    with open(CATEGORY_VALUE_PATH, 'a', newline='', encoding='utf-8') as f:
-                        category_volume_writer = csv.writer(f, dialect='excel')
-                        category_file_row = [cat_id]       # create list of data to add in file
-                        category_file_row.extend(cat_data)      # reshape dict to list
-                        print(f'category_file_row len: {category_file_row}')
-                        category_volume_writer.writerow(category_file_row)
-
-                start_category_id += 1
-            '''
-            # ---------- GET CATEGORY VOLUME ---------- END
 
             # ---------- GET KEYWORD STATISTICS ----------
             # for idx, (keyword, month_frequency) in \
@@ -570,6 +465,11 @@ if __name__ == '__main__':
                     output_stat_writer.writerow([keyword, month_frequency, week_frequency])
                 print(stat)
                 start_keyword_id += 1  # Remember element ID for the next slice of keywords list
+
+                # Reload page for every 500 responses
+                if start_keyword_id // int(params.reload_window) == start_keyword_id / int(params.reload_window):
+                    for tab_id in tab_ids.values():
+                        bm.close_window(handler=tab_id)
             # ---------- GET KEYWORD STATISTICS ---------- END
 
             print(f'Number of NEW categories in file: {len(cat_id_name_volume)-1-number_of_cat_volume}')

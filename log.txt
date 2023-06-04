@@ -26,3 +26,143 @@ Exception at: 2023-05-20 17:45:56. Current Keyword ID: 5086
 Exception at: 2023-05-20 18:58:31. Current Keyword ID: 6757
 Exception at: 2023-05-20 20:57:43. Current Keyword ID: 7198
 #########################
+
+#########################
+START at: 2023-05-26 18:33:24
+Exception at: 2023-05-26 18:35:02. Current Keyword ID: 1
+Exception at: 2023-05-26 18:36:35. Current Keyword ID: 1
+Exception at: 2023-05-26 18:38:03. Current Keyword ID: 1
+Exception at: 2023-05-26 18:38:41. Current Keyword ID: 1
+Exception at: 2023-05-26 18:40:30. Current Keyword ID: 1
+
+#########################
+START at: 2023-05-26 20:41:32
+FINISH at: 2023-05-26 20:43:45
+Total time: 0:02:13.063197, Total keywords: 5
+Number of NEW categories in file: 0#########################
+
+#########################
+START at: 2023-05-27 02:34:43
+
+#########################
+START at: 2023-05-27 06:09:54
+
+#########################
+START at: 2023-05-27 10:08:34
+Exception at: 2023-05-27 10:44:09. Current Keyword ID: 2500
+Exception at: 2023-05-27 11:58:11. Current Keyword ID: 3000
+Exception at: 2023-05-27 13:06:59. Current Keyword ID: 3500
+Exception at: 2023-05-27 14:21:30. Current Keyword ID: 4000
+Exception at: 2023-05-27 15:38:43. Current Keyword ID: 4500
+Exception at: 2023-05-27 17:06:15. Current Keyword ID: 5000
+
+#########################
+START at: 2023-05-27 17:20:03
+Exception at: 2023-05-27 18:31:36. Current Keyword ID: 5500
+Exception at: 2023-05-27 19:56:59. Current Keyword ID: 6000
+Exception at: 2023-05-27 21:12:55. Current Keyword ID: 6500
+Exception at: 2023-05-27 22:00:38. Current Keyword ID: 6808
+Exception at: 2023-05-27 22:36:28. Current Keyword ID: 7000
+Exception at: 2023-05-28 00:09:57. Current Keyword ID: 7500
+Exception at: 2023-05-28 01:43:23. Current Keyword ID: 8000
+Exception at: 2023-05-28 03:09:44. Current Keyword ID: 8500
+Exception at: 2023-05-28 03:46:39. Current Keyword ID: 9000
+FINISH at: 2023-05-28 03:53:50
+Total time: 10:33:46.925680, Total keywords: 9042
+Number of NEW categories in file: 0#########################
+
+#########################
+START at: 2023-05-28 07:41:56
+Exception at: 2023-05-28 09:12:05. Current Keyword ID: 9000
+FINISH at: 2023-05-28 09:22:10
+Total time: 1:40:13.293903, Total keywords: 9042
+Number of NEW categories in file: 0#########################
+
+#########################
+START at: 2023-06-02 09:24:59
+Exception at: 2023-06-02 09:27:35. Current Keyword ID: 2
+
+#########################
+START at: 2023-06-02 09:38:31
+Exception at: 2023-06-02 09:40:40. Current Keyword ID: 2
+
+#########################
+START at: 2023-06-02 14:24:24
+
+#########################
+START at: 2023-06-02 14:27:17
+Exception at: 2023-06-02 14:29:03. Current Keyword ID: 1
+
+#########################
+START at: 2023-06-02 14:40:07
+Exception at: 2023-06-02 14:41:51. Current Keyword ID: 2
+Exception at: 2023-06-02 14:43:39. Current Keyword ID: 3
+
+#########################
+START at: 2023-06-02 15:00:48
+
+#########################
+START at: 2023-06-02 17:10:05
+Exception at: 2023-06-02 17:33:05. Current Keyword ID: 400
+Exception at: 2023-06-02 17:57:15. Current Keyword ID: 500
+Exception at: 2023-06-02 18:23:38. Current Keyword ID: 600
+Exception at: 2023-06-02 18:46:30. Current Keyword ID: 700
+Exception at: 2023-06-02 19:11:54. Current Keyword ID: 800
+Exception at: 2023-06-02 19:32:58. Current Keyword ID: 900
+Exception at: 2023-06-02 19:57:01. Current Keyword ID: 1000
+Un Login at: 2023-06-02 20:00:05. Current Keyword ID: 1000
+Exception at: 2023-06-02 20:22:44. Current Keyword ID: 1100
+Exception at: 2023-06-02 20:45:17. Current Keyword ID: 1200
+Exception at: 2023-06-02 21:08:32. Current Keyword ID: 1300
+Exception at: 2023-06-02 21:32:03. Current Keyword ID: 1400
+Exception at: 2023-06-02 21:54:55. Current Keyword ID: 1500
+Exception at: 2023-06-02 22:15:03. Current Keyword ID: 1600
+Exception at: 2023-06-02 22:38:52. Current Keyword ID: 1700
+Exception at: 2023-06-02 23:02:18. Current Keyword ID: 1800
+Exception at: 2023-06-02 23:25:21. Current Keyword ID: 1900
+Exception at: 2023-06-02 23:47:46. Current Keyword ID: 2000
+Exception at: 2023-06-03 00:10:29. Current Keyword ID: 2100
+Exception at: 2023-06-03 00:37:46. Current Keyword ID: 2200
+Exception at: 2023-06-03 01:01:24. Current Keyword ID: 2300
+Exception at: 2023-06-03 01:25:47. Current Keyword ID: 2400
+Exception at: 2023-06-03 01:50:19. Current Keyword ID: 2500
+FINISH at: 2023-06-03 01:52:17
+Total time: 8:42:11.931394, Total keywords: 2500
+Number of NEW categories in file: 616#########################
+
+#########################
+START at: 2023-06-03 15:38:39
+
+#########################
+START at: 2023-06-03 15:41:12
+Exception at: 2023-06-03 16:04:28. Current Keyword ID: 2600
+Exception at: 2023-06-03 16:26:18. Current Keyword ID: 2700
+Un Login at: 2023-06-03 16:29:37. Current Keyword ID: 2700
+Exception at: 2023-06-03 16:50:23. Current Keyword ID: 2800
+Exception at: 2023-06-03 17:10:29. Current Keyword ID: 2900
+Exception at: 2023-06-03 17:32:24. Current Keyword ID: 3000
+Exception at: 2023-06-03 17:54:50. Current Keyword ID: 3100
+Un Login at: 2023-06-03 17:58:59. Current Keyword ID: 3100
+Un Login at: 2023-06-03 18:01:55. Current Keyword ID: 3100
+Exception at: 2023-06-03 18:02:46. Current Keyword ID: 3100
+Exception at: 2023-06-03 18:24:44. Current Keyword ID: 3200
+Exception at: 2023-06-03 18:49:35. Current Keyword ID: 3300
+Exception at: 2023-06-03 18:51:04. Current Keyword ID: 3300
+Exception at: 2023-06-03 18:51:33. Current Keyword ID: 3300
+Exception at: 2023-06-03 19:14:19. Current Keyword ID: 3400
+Exception at: 2023-06-03 19:38:52. Current Keyword ID: 3500
+Exception at: 2023-06-03 19:41:13. Current Keyword ID: 3500
+Exception at: 2023-06-03 20:03:59. Current Keyword ID: 3600
+Exception at: 2023-06-03 20:28:48. Current Keyword ID: 3700
+Exception at: 2023-06-03 20:51:06. Current Keyword ID: 3800
+Exception at: 2023-06-03 21:15:22. Current Keyword ID: 3900
+Exception at: 2023-06-03 21:39:59. Current Keyword ID: 4000
+Exception at: 2023-06-03 22:00:54. Current Keyword ID: 4100
+
+#########################
+START at: 2023-06-03 22:22:45
+Exception at: 2023-06-03 22:33:45. Current Keyword ID: 4200
+Exception at: 2023-06-03 23:19:31. Current Keyword ID: 4400
+FINISH at: 2023-06-03 23:39:23
+Total time: 1:16:37.862535, Total keywords: 4500
+Number of NEW categories in file: 60#########################
