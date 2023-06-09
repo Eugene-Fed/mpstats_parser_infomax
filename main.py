@@ -90,6 +90,9 @@ def log_in(account: dict, login_data: dict, sleep=0, key='enter',
                          element_name=settings['login_data']['button_value'])
     else:
     '''
+
+    bm.click_element(element_type=login_data['name_key'], element_name=login_data['name_value'],
+                data=account['login'], sleep=sleep, window_id=window_id, element=element)   # For close any popups
     bm.set_text(element_type=login_data['name_key'], element_name=login_data['name_value'],
                 data=account['login'], sleep=sleep, window_id=window_id, element=element)   # Set name
     bm.set_text(element_type=login_data['pass_key'], element_name=login_data['pass_value'],
@@ -271,6 +274,7 @@ def get_category_volume(category_index: int, settings=None, account=None,
 def create_browser_window(settings: dict, accounts: dict, tab_ids={}, sleep=0) -> dict:
     """
     Create new browser window and log in to accounts
+    # TODO Вынести создание вкладки вместе с логином в отдельный метод/класс
     :param settings: main settings from file
     :param accounts: dict of accounts IDs to use it in settings object
     :param tab_ids: collects IDs of opened tabs in browser. it will be returned
@@ -337,6 +341,8 @@ if __name__ == '__main__':
                                   login_data=settings['mpstats'][MP_STATS_ACCOUNT_ID]['login_data'])
 
     # Open/Create category ID, Name, Volume matching file and load category volume dict
+    reason_of_stopping = ''
+    number_of_cat_volume = 0
     try:
         with open(CATEGORY_VALUE_PATH, 'r', newline='', encoding='utf-8') as f:
             category_volume_reader = csv.reader(f, delimiter=',')
@@ -490,8 +496,14 @@ if __name__ == '__main__':
                 except Exception as ex:
                     print(ex)
                     # break                                       # Exit from `While True` loop
+        reason_of_stopping = 'WORK DONE!!!'
+
+    except KeyboardInterrupt as key_int_ex:
+        reason_of_stopping = 'Keyboard Interrupt'
+        print(f'The job was stopped by the user.')
 
     except Exception as main_loop_exception:
+        reason_of_stopping = 'Uncaught Exception'
         print(f'EXCEPTION: {main_loop_exception}')
 
     finally:
@@ -514,5 +526,6 @@ if __name__ == '__main__':
             log.write(f'Total time: {work_time}, '
                       f'Total keywords: {key_limit}\n'
                       f'Number of NEW categories in file: {len(cat_id_name_volume)-1-number_of_cat_volume}\n'
+                      f'Stop with status: {reason_of_stopping}\n'
                       f'#########################\n')
             log.close()
