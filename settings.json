@@ -6,10 +6,9 @@
     "api-keys_dir": "api-keys",
     "api-keys_file": "api-keys.json",
     "category_volume_file": "category_volume.csv",
-    "constants": [
-        {
+    "constants": {
             "KEYWORD_COUNT_START": 0,
-            "KEYWORD_COUNT_LIMIT": 15000,
+            "KEYWORD_COUNT_LIMIT": 0,
             "NUMBER_OF_CATEGORIES": 0,
             "KEYWORD_FREQ_LIMIT": 19999,
             "KEYWORD_STATISTICS_WAIT": 3,
@@ -20,8 +19,7 @@
             "KEYWORDS_WEEK_PATH": "D:/Downloads/requests_week.csv",
             "CATEGORY_VALUE_PATH": "D:/Downloads/category_volume.csv",
             "LOG_FILE": "log.txt"
-        }
-    ],
+    },
     "mpstats": [
         {
             "urls":
@@ -73,7 +71,7 @@
             },
             "tags_n_paths":
             {
-                "BVID": 51
+                "BVID": 64
             }
         }
     ],
@@ -92,15 +90,15 @@
             "keywords_stat": {
                 "prior_cat": {
                     "element_type": "class",
-                    "element_name": "sc-ilDYpA"
+                    "element_name": "sc-ieQsNB"
                 },
                 "keyword": {
                     "element_type": "class",
-                    "element_name": "sc-bTQVhO"
+                    "element_name": "sc-bNdpFP"
                 },
                 "last_requests": {
                     "element_type": "class",
-                    "element_name": "sc-bFnbxT",
+                    "element_name": "sc-fCqsqp",
                     "element_value": "Последние 5 запросов"
                 },
                 "bids_table": {
