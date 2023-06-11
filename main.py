@@ -55,15 +55,15 @@ def create_parser() -> ArgumentParser:
     :return: an ArgumentParser object
     """
     parser = ArgumentParser()
-    parser.add_argument('-ks', '--key_start', default=KEYWORD_COUNT_START)
-    parser.add_argument('-kl', '--key_limit', default=KEYWORD_COUNT_LIMIT)
-    parser.add_argument('-kt', '--key_tries', default=KEYWORD_STATISTICS_TRIES)
-    parser.add_argument('-fl', '--freq_limit', default=KEYWORD_FREQ_LIMIT)
-    parser.add_argument('-cs', '--cat_start', default=CATEGORY_STATISTICS_TRIES)
-    parser.add_argument('-cl', '--cat_limit', default=CATEGORY_COUNT_LIMIT)
-    parser.add_argument('-ct', '--cat_tries', default=CATEGORY_STATISTICS_TRIES)
-    parser.add_argument('-w', '--wait', default=STATISTICS_WAIT)
-    parser.add_argument('-r', '--reload_window', default=RELOAD_WINDOW)
+    parser.add_argument('-ks', '--key_start', type=int, default=KEYWORD_COUNT_START)
+    parser.add_argument('-kl', '--key_limit', type=int, default=KEYWORD_COUNT_LIMIT)
+    parser.add_argument('-kt', '--key_tries', type=int, default=KEYWORD_STATISTICS_TRIES)
+    parser.add_argument('-fl', '--freq_limit', type=int, default=KEYWORD_FREQ_LIMIT)
+    parser.add_argument('-cs', '--cat_start', type=int, default=CATEGORY_STATISTICS_TRIES)
+    parser.add_argument('-cl', '--cat_limit', type=int, default=CATEGORY_COUNT_LIMIT)
+    parser.add_argument('-ct', '--cat_tries', type=int, default=CATEGORY_STATISTICS_TRIES)
+    parser.add_argument('-w', '--wait', type=int, default=STATISTICS_WAIT)
+    parser.add_argument('-r', '--reload_window', type=int, default=RELOAD_WINDOW)
 
     return parser
 
@@ -408,11 +408,6 @@ if __name__ == '__main__':
                 #    int(params.key_start) + start_keyword_id - 1  # If process was broken we will start from last ID
 
                 # ---------- GET KEYWORD STATISTICS ----------
-                # for idx, (keyword, month_frequency) in \
-                #        enumerate(month_keywords[keyword_start_from:int(params.key_limit)]):
-                # for idx, (keyword, month_frequency) in \
-                #        enumerate(month_keywords[start_keyword_id-1:int(params.key_limit)]):
-
                 # `start_keyword_id` stars from `1`
                 for keyword, month_frequency in month_keywords[start_keyword_id - 1:key_limit]:
                     bm.change_tab(tab_ids['bablo_btn_0'])
@@ -423,18 +418,14 @@ if __name__ == '__main__':
                                             settings=settings['bablo_button'][BABLO_BTN_ACCOUNT_ID]['keywords_stat'],
                                             sleep=int(params.wait), repeat=int(params.key_tries))
 
-                    # keyword, month_frequency = keyword_and_freq[0], keyword_and_freq[1]
-                    week_frequency = week_keywords.pop(keyword, '')  # получаем значение недельной частотности
+                    week_frequency = week_keywords.pop(keyword, '-')  # получаем значение недельной частотности
 
                     # Если нашли элемент со статистикой категории, тогда сохраняем все прочие данные в таблицу
                     cat_volume = ''
                     if stat['categories']:
                         cat_id = int(re.search(r'\d+', stat['categories'][0]).group())    # Get the first (main) category ID
                         # Get Name and sales Volume for Category
-                        # TODO - TEMPORARY HIDDEN
-                        # cat_data, cat_volume = cat_id_name_volume.get(cat_id, default=('', ''))      # TODO solve problem
                         if cat_id in cat_id_name_volume:
-                            # cat_id_name_volume = {int(cat_id): (str(cat_path), int(cat_volume))}
                             cat_name, cat_volume = cat_id_name_volume[cat_id]
                         else:
                             cat_name, cat_volume = get_category_volume(cat_id,
@@ -449,12 +440,10 @@ if __name__ == '__main__':
                             with open(CATEGORY_VALUE_PATH, 'a', newline='', encoding='utf-8') as f:
                                 category_volume_writer = csv.writer(f, dialect='excel')
                                 category_file_row = [cat_id, cat_name, cat_volume]  # create list of data to add in file
-                                # category_file_row.extend(cat_data)  # reshape dict to list
                                 print(f'category_file_row len: {category_file_row}')
                                 category_volume_writer.writerow(category_file_row)
 
                         bids = [x[1] for x in stat['bids']]  # Required bids
-                        # output_stats = [keyword, month_frequency, week_frequency, '', '', stat['categories'][0]]
                         output_stats = [keyword, month_frequency, week_frequency, '', '', cat_name]
                         output_stats.extend(bids)
                         output_stats.extend([cat_volume, '', cat_id])
