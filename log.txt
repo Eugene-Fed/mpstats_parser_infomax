@@ -252,3 +252,98 @@ Number of NEW categories in file: 667
 Stop with status: WORK DONE!!!
 #########################
 
+
+#########################
+START at: 2023-06-16 19:44:56
+
+#########################
+START at: 2023-06-16 20:01:25
+
+#########################
+START at: 2023-06-16 20:03:15
+
+#########################
+START at: 2023-06-16 20:04:38
+
+#########################
+START at: 2023-06-16 20:06:06
+
+#########################
+START at: 2023-06-16 20:20:36
+FINISH at: 2023-06-16 20:23:05
+Total time: 0:02:29.166614, Total keywords: 2
+Number of NEW categories in file: 2
+Stop with status: WORK DONE!!!
+#########################
+
+#########################
+START at: 2023-06-16 20:24:35
+Exception at: 2023-06-16 20:50:43. Current Keyword ID: 85
+Exception at: 2023-06-16 21:34:46. Current Keyword ID: 234
+Exception at: 2023-06-16 22:01:03. Current Keyword ID: 330
+Exception at: 2023-06-16 22:47:31. Current Keyword ID: 500
+Exception at: 2023-06-16 23:16:51. Current Keyword ID: 600
+Exception at: 2023-06-16 23:34:35. Current Keyword ID: 662
+Exception at: 2023-06-16 23:58:03. Current Keyword ID: 759
+Exception at: 2023-06-17 00:20:17. Current Keyword ID: 838
+Exception at: 2023-06-17 01:05:02. Current Keyword ID: 1000
+Exception at: 2023-06-17 03:03:15. Current Keyword ID: 1500
+Exception at: 2023-06-17 04:53:34. Current Keyword ID: 2000
+Exception at: 2023-06-17 06:48:14. Current Keyword ID: 2500
+Exception at: 2023-06-17 07:08:36. Current Keyword ID: 2572
+Exception at: 2023-06-17 08:40:51. Current Keyword ID: 3000
+Exception at: 2023-06-17 08:43:12. Current Keyword ID: 3001
+Exception at: 2023-06-17 10:28:41. Current Keyword ID: 3500
+FINISH at: 2023-06-17 10:57:43
+Total time: 14:33:07.751254, Total keywords: 9160
+Number of NEW categories in file: 924
+Stop with status: Keyboard Interrupt
+#########################
+
+#########################
+START at: 2023-06-17 17:46:36
+Exception at: 2023-06-17 18:01:37. Current Keyword ID: 3698
+Exception at: 2023-06-17 19:05:28. Current Keyword ID: 4000
+Exception at: 2023-06-17 19:11:05. Current Keyword ID: 4015
+Exception at: 2023-06-17 19:26:44. Current Keyword ID: 4078
+Exception at: 2023-06-17 19:39:57. Current Keyword ID: 4131
+Exception at: 2023-06-17 20:54:20. Current Keyword ID: 4500
+Exception at: 2023-06-17 22:23:27. Current Keyword ID: 4953
+Exception at: 2023-06-17 22:36:37. Current Keyword ID: 5000
+Exception at: 2023-06-17 22:58:46. Current Keyword ID: 5100
+Exception at: 2023-06-17 23:13:16. Current Keyword ID: 5170
+Exception at: 2023-06-18 00:07:41. Current Keyword ID: 5458
+Exception at: 2023-06-18 00:17:33. Current Keyword ID: 5500
+Exception at: 2023-06-18 00:22:29. Current Keyword ID: 5520
+Exception at: 2023-06-18 00:37:56. Current Keyword ID: 5593
+Exception at: 2023-06-18 01:16:08. Current Keyword ID: 5788
+Exception at: 2023-06-18 01:59:06. Current Keyword ID: 6000
+Exception at: 2023-06-18 02:02:56. Current Keyword ID: 6007
+Exception at: 2023-06-18 02:19:19. Current Keyword ID: 6084
+Exception at: 2023-06-18 03:00:52. Current Keyword ID: 6306
+Exception at: 2023-06-18 03:39:30. Current Keyword ID: 6500
+Exception at: 2023-06-18 05:18:48. Current Keyword ID: 7000
+Exception at: 2023-06-18 05:46:26. Current Keyword ID: 7134
+Exception at: 2023-06-18 06:54:48. Current Keyword ID: 7500
+Exception at: 2023-06-18 07:40:49. Current Keyword ID: 7747
+Exception at: 2023-06-18 08:27:46. Current Keyword ID: 8000
+Exception at: 2023-06-18 09:35:36. Current Keyword ID: 8408
+Exception at: 2023-06-18 09:38:13. Current Keyword ID: 8409
+FINISH at: 2023-06-18 09:55:57
+Total time: 16:09:20.290983, Total keywords: 9160
+Number of NEW categories in file: 633
+Stop with status: Keyboard Interrupt
+#########################
+
+#########################
+START at: 2023-06-18 16:42:39
+Exception at: 2023-06-18 16:46:03. Current Keyword ID: 8500
+Exception at: 2023-06-18 16:55:54. Current Keyword ID: 8544
+Exception at: 2023-06-18 18:01:26. Current Keyword ID: 8868
+Exception at: 2023-06-18 18:13:16. Current Keyword ID: 8911
+Exception at: 2023-06-18 18:31:20. Current Keyword ID: 9000
+FINISH at: 2023-06-18 19:02:51
+Total time: 2:20:11.489358, Total keywords: 9160
+Number of NEW categories in file: 81
+Stop with status: WORK DONE!!!
+#########################

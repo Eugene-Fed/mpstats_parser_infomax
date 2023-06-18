@@ -15,9 +15,9 @@
             "KEYWORD_STATISTICS_TRIES": 5,
             "OTHER_ELEMENTS_TRIES": 2,
             "REQUIRED_PLACE_INDEXES": [1, 2, 3, 4, 5],
-            "KEYWORDS_MONTH_PATH": "D:/Downloads/requests_month.csv",
-            "KEYWORDS_WEEK_PATH": "D:/Downloads/requests_week.csv",
-            "CATEGORY_VALUE_PATH": "D:/Downloads/category_volume.csv",
+            "KEYWORDS_MONTH_PATH": "requests_month.csv",
+            "KEYWORDS_WEEK_PATH": "requests_week.csv",
+            "CATEGORY_VALUE_PATH": "category_volume.csv",
             "LOG_FILE": "log.txt"
     },
     "mpstats": [
@@ -90,15 +90,15 @@
             "keywords_stat": {
                 "prior_cat": {
                     "element_type": "class",
-                    "element_name": "sc-ieQsNB"
+                    "element_name": "sc-itktkY"
                 },
                 "keyword": {
                     "element_type": "class",
-                    "element_name": "sc-bNdpFP"
+                    "element_name": "sc-iKqsjz"
                 },
                 "last_requests": {
                     "element_type": "class",
-                    "element_name": "sc-fCqsqp",
+                    "element_name": "sc-dyfiKA",
                     "element_value": "Последние 5 запросов"
                 },
                 "bids_table": {

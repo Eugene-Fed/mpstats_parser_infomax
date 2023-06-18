@@ -28,9 +28,9 @@ CATEGORY_STATISTICS_TRIES = 7
 REQUIRED_PLACE_INDEXES = (1, 2, 3, 4, 5)            # Set the positions for which we will collect statistics (from 1st)
 RELOAD_WINDOW = 500                               # Промежуточная перезагрузка страницы на случай непредвиденных проблем
 # TODO - Rewrite to search for system `Downloads` directory
-KEYWORDS_MONTH_PATH = r"D:/Downloads/requests_month.csv"    # Monthly statistics download file from Wildberries
-KEYWORDS_WEEK_PATH = r"D:/Downloads/requests_week.csv"      # Weekly statistics download file from Wildberries
-CATEGORY_VALUE_PATH = r"D:/Downloads/category_volume.csv"   # Revenue file by category
+KEYWORDS_MONTH_PATH = r"requests_month.csv"    # Monthly statistics download file from Wildberries
+KEYWORDS_WEEK_PATH = r"requests_week.csv"      # Weekly statistics download file from Wildberries
+CATEGORY_VALUE_PATH = r"category_volume.csv"   # Revenue file by category
 # TEMP_KEYWORDS_PATH = r"D:\Downloads\wb-template.csv"      # файл для выгрузки в кнопку бабло (функция не работает)
 # output_stat_path = f'stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_[]-{KEYWORD_COUNT_LIMIT}.csv'
 # output_stat_path = f'D:/Downloads/stat_{KEYWORD_COUNT_LIMIT}_{datetime.now().strftime("%d-%m-%Y")}.csv'
@@ -387,7 +387,7 @@ if __name__ == '__main__':
     # output_stat_path = f'D:\\Downloads\\stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_{key_limit}-[].csv'
     # output_stat_name = output_stat_path.replace('[]', str(len(month_keywords)))
     output_stat_name = \
-        f'D:\\Downloads\\stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_{key_limit}-{len(month_keywords)}.csv'
+        f'stat_{datetime.now().strftime("%Y-%m-%d_%H-%M")}_{key_limit}-{len(month_keywords)}.csv'
     output_file = open(output_stat_name, 'w', newline='', encoding='utf-8', buffering=1)  # output statistic file
     output_stat_writer = csv.writer(output_file, dialect='excel')
     output_stat_writer.writerow(STAT_FILE_HEADERS)
