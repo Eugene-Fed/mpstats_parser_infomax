@@ -2,12 +2,13 @@
 
 ### HOW TO RUN
 You can use number of parameters to start with script:
-- `-s`, `--key_start`: Start keyword ID from list
-- `-l`. `--key_limit`: Maximum limit of keyword in output file
+- `-ks`, `--key_start`: Start keyword ID from list
+- `-kl`. `--key_limit`: Maximum limit of keyword in output file
 - `-f`, `--freq_limit`: Minimum keyword month frequency limit to research
 - `-w`, `--wait`: Time to wait between web browser manipulations in seconds
 - `-t`, `--tries`: Number of keyword statistics download tries
 - `-c`, `--number_of_categories`: Maximum number of researching categories
+- `-r`, `--reload_window`: Count of ready keywords before reload window
 
 #### MacOS
 - `brew install --cask chromedriver`
