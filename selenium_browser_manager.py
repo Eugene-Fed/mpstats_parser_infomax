@@ -190,7 +190,7 @@ def change_tab(window_id: str) -> str:
     return driver.current_window_handle
 
 
-def destroy_window(handler: str):
+def destroy_window(handler: str | None):
     try:
         # driver.switch_to.window(handler)
         # driver.close()
