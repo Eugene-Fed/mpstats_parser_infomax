@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+*.csv
+.idea/*
+log.txt
+
 # API keys
 api-keys/
 

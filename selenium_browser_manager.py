@@ -7,12 +7,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 
-DRIVER_PATH = r'drivers/chromedriver.exe'
+# DRIVER_PATH = r'drivers/chromedriver.exe'
+DRIVER_PATH = r'drivers/chromedriver'
 USER_DATA_DIR = r'Default'
 CHROME_PROFILE_NAME = r'Default'
 CHROME_PROFILE_PATH = r'C:\Users\eugen\AppData\Local\Google\Chrome\User Data'           # main
 WB_URL = r'https://seller.wildberries.ru/'
-# TIMEOUT = 15                          # Time to waiting of page load. But doesn't work
 SLEEP = 0
 REPEAT = 0
 
@@ -121,8 +121,7 @@ class Auth:
 
         # TODO - unhardcode next `click_element()` function to close popup
         # TODO - переполучить заново html-страницы, т.к. popup открывается "поверх" первоначального сайта
-        click_element(element_type='xpath',
-                      element_name=r'//*[@id="carrotquest-messenger-body-big-cont"]/div[1]', sleep=10)    # Close popup
+        # click_element(element_type='xpath', element_name=r'//*[@id="carrotquest-messenger-body-big-cont"]/div[1]', sleep=10)    # Close popup
         set_text(**acc_name)  # Set name
         set_text(**acc_pass)  # Set pass
         if submit_button:  # If Submit button element is given
@@ -191,10 +190,10 @@ def change_tab(window_id: str) -> str:
     return driver.current_window_handle
 
 
-def destroy_window(handler: str):
+def destroy_window(handler: str | None):
     try:
-        driver.switch_to.window(handler)
-        driver.close()
+        # driver.switch_to.window(handler)
+        # driver.close()
         driver.quit()
     except Exception as ex:
         print("WINDOW NOT AVAILABLE")
@@ -356,16 +355,16 @@ def click_key(element_type: str, element_name: str, key='enter',
 
 if __name__ == '__main__':
     # TODO - clear it! Just for test
-    google_window = create_window('https://google.com', sleep=3)  # Open auth window for `MP Stats`
+    google_window = create_window('https://google.com', sleep=1)  # Open auth window for `MP Stats`
     driver.execute_script("window.open('https://ya.ru');")
     # windows_before = driver.current_window_handle
     # driver.switch_to.new_window()     # An alternate
     driver.switch_to.window(driver.window_handles[-1])
     # driver.get('https://ya.ru')
-    time.sleep(3)
+    time.sleep(1)
     driver.switch_to.window(google_window)
-    time.sleep(3)
+    time.sleep(1)
     print(f'{google_window}\n{driver.window_handles}')
     destroy_window(driver.window_handles[1])
-    time.sleep(3)
+    time.sleep(1)
     destroy_window(google_window)

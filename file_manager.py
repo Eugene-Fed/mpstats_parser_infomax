@@ -45,9 +45,24 @@ def load_json(templates_dir=templates_dir, file=settings_file):
     return json_data
 
 
+def find_file(template: str, folder: Path | None) -> list[Path]:
+    """
+    Поиск всех файлов по заданному шаблону в указанной папке. Если параметр folder не задан,
+    поиск осуществляется в текущей папке.
+    :param template: Регулярное выражение с шаблоном названия искомого файла.
+    :param folder: Путь к папке, в которой нужно осуществить поиск.
+    :return: Список найденных имен или None.
+    """
+    file_path = Path(folder) if folder else Path().absolute()
+    paths = sorted(file_path.glob(template))
+    # return list(map(str, paths))
+    return paths
+
+
 if __name__ == '__main__':
     settings = load_json(file=settings_file)
     api_keys_path = Path(settings['api-keys_dir']) / Path(settings['api-keys_file'])
     api_keys = load_json(file=api_keys_path)
     print(settings)
+    print(find_file(r'stat_*.csv', None))
 

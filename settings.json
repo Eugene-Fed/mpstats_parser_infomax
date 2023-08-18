@@ -12,12 +12,12 @@
             "NUMBER_OF_CATEGORIES": 0,
             "KEYWORD_FREQ_LIMIT": 19999,
             "KEYWORD_STATISTICS_WAIT": 3,
-            "KEYWORD_STATISTICS_TRIES": 5,
+            "KEYWORD_STATISTICS_TRIES": 3,
             "OTHER_ELEMENTS_TRIES": 2,
             "REQUIRED_PLACE_INDEXES": [1, 2, 3, 4, 5],
-            "KEYWORDS_MONTH_PATH": "D:/Downloads/requests_month.csv",
-            "KEYWORDS_WEEK_PATH": "D:/Downloads/requests_week.csv",
-            "CATEGORY_VALUE_PATH": "D:/Downloads/category_volume.csv",
+            "KEYWORDS_MONTH_PATH": "requests_month.csv",
+            "KEYWORDS_WEEK_PATH": "requests_week.csv",
+            "CATEGORY_VALUE_PATH": "category_volume.csv",
             "LOG_FILE": "log.txt"
     },
     "mpstats": [
@@ -71,15 +71,16 @@
             },
             "tags_n_paths":
             {
-                "BVID": 64
+                "BVID": 67
             }
         }
     ],
     "bablo_button": [
         {
             "urls": {
-                "login": "https://www.knopka-bablo.online/login",
-                "keywords": "https://www.knopka-bablo.online/current-bets"
+                "login": "https://knopka-bablo.online/",
+                "keywords": "https://www.app.knopka-bablo.online/current-bets",
+                "button_selector": "/html/body/div[1]/div[1]/div[3]/div/div[4]/div/div/div/div[1]/a/table/tbody/tr/td"
             },
             "login_data": {
                 "name_key": "name",
@@ -88,17 +89,21 @@
                 "pass_value": "password"
             },
             "keywords_stat": {
+            	"current_bids": {
+            		"element_type": "xpath",
+                    "element_name": "/html/body/div[1]/div/div[1]/header/div[1]/nav/a[2]"
+            	},
                 "prior_cat": {
                     "element_type": "class",
-                    "element_name": "sc-ieQsNB"
+                    "element_name": "sc-eODrEC"
                 },
                 "keyword": {
                     "element_type": "class",
-                    "element_name": "sc-bNdpFP"
+                    "element_name": "sc-cYeeTI"
                 },
                 "last_requests": {
                     "element_type": "class",
-                    "element_name": "sc-fCqsqp",
+                    "element_name": "sc-hqUaMi",
                     "element_value": "Последние 5 запросов"
                 },
                 "bids_table": {
